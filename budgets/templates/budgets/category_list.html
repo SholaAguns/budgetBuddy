@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container budget_heading" >
+        <h2>Categories</h2>
+</div>
+<div class="container" align="center">
+    {% for category in object_list %}
+    <h3>
+        {{category.title}}
+    </h3>
+    <hr>
+	{% endfor %}
+        
+    {% if user.is_authenticated %}
+        <div id="budget_controls" class="container" align="center">
+        <br><br>
+        <a href="{% url 'budgets:add_category' %}" role="button" class="btn btn-outline-secondary w-80">Add Category</a>
+        </div><br><br>
+    {% endif %}
+</div>
+{% endblock %}

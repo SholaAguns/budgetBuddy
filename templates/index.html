@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+  <div class="jumbotron selection_panel" align="center" id="getstarted_panel">
+
+  <div class="container" align="center">
+    <div class="card" style="width: 18rem;">
+    <img class="media-object mw150" src="{% static 'images/no-image-image.jpg' %}" alt="" style="max-height:271px">
+    <div class="card-body">
+      <div class="card-header">
+       Welcome {{user.username}}
+      </div>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item"><a href="#">Reports</a></li>
+      <li class="list-group-item"><a href="{% url 'budgets:budget_list' %}">Budgets</a></li>
+      <li class="list-group-item"><a href="{% url 'budgets:categories' %}">Categories</a></li>
+      <li class="list-group-item"><a href="{% url 'budgets:rulesets' %}">Rulesets</a></li>
+      <li class="list-group-item"><a href="#">Close account</a></li>
+    </ul>
+
+    </div>
+  </div>
+  </div>
+  </div>
+
+
+{% endblock %}

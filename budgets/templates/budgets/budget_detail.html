@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container budget_heading" >
+        <h2 >{{budget.name}}</h2>
+</div>
+<div class="container" align="center" >
+  <table>
+        <tr>
+            <th>Category</th>
+            <th>Limit</th>
+        </tr>
+
+        {% for budget_category in budget.budgetcategory_set.all %}
+               <tr>
+                <td>{{ budget_category.category}} </td>
+                <td>{{ budget_category.limit}} </td>
+              </tr>
+        {% endfor %}
+
+  </table>
+    {% if user.is_authenticated and budget.user == user %}
+        <div id="budget_controls" class="container" align="center">
+        <br><br>
+        <a href="{% url 'budgets:add_budget_category' pk=budget.id %}" role="button" class="btn btn-outline-secondary w-80">Add Category</a>
+        <a href="#" role="button" class="btn btn-outline-danger  w-80">Delete Budget</a>
+        </div><br><br>
+    {% endif %}
+</div>
+{% endblock %}

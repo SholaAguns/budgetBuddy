@@ -1,0 +1,37 @@
+.navbar{
+  border-bottom: 0.5px solid black;
+}
+
+#input{
+  width: 500px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.selection_panel{
+  padding-top: 100px;
+}
+
+#brandname{
+  font-family: "Oswald", sans-serif;
+}
+
+.response_links{
+  font-size: 20px;
+}
+
+.delete_icon{
+    font-size: 15px;
+    color: red;
+
+}
+.list-group-item {
+    font-size: 20px;
+    text-color: black;
+}
+.list-group-item {
+    font-size: 20px;
+    text-color: black;
+.budget_heading{
+    text-align: center;
+}
