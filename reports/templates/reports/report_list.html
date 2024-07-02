@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container budget_heading" >
+        <h2>My Reports</h2>
+</div>
+<div class="container" align="center">
+    {% for report in report_list %}
+    <h3>
+        <a href="{% url 'reports:single_report' pk=report.id %}">{{ report.name }}</a>
+    </h3>
+    <hr>
+	{% endfor %}
+
+    {% if user.is_authenticated %}
+        <div id="budget_controls" class="container" align="center">
+        <br><br>
+        <a href="{% url 'reports:add_report' %}" role="button" class="btn btn-outline-secondary w-80">Create Report</a>
+        </div><br><br>
+    {% endif %}
+</div>
+{% endblock %}

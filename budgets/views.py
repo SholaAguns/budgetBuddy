@@ -1,9 +1,12 @@
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, DetailView, CreateView, ListView
+from django.views.generic import TemplateView, DetailView, CreateView, ListView, UpdateView, DeleteView
 from .models import Category, BudgetCategory, Budget, Rule, Ruleset
 from .forms import CategoryForm, BudgetForm, BudgetCategoryForm, RuleForm, RulesetForm
 from django.urls import reverse
+from django.contrib import messages
 
 
 class CreateCategory(LoginRequiredMixin, CreateView):
@@ -90,3 +93,68 @@ class CategoryList(LoginRequiredMixin, ListView):
 
 class RulesetList(LoginRequiredMixin, ListView):
     model = Ruleset
+
+
+class BudgetUpdate(LoginRequiredMixin, UpdateView):
+    login_url = '/login'
+    model = Budget
+    form_class = BudgetForm
+    redirect_field_name = 'budgets/budget_detail.html'
+
+
+class RulesetUpdate(LoginRequiredMixin, UpdateView):
+    login_url = '/login'
+    model = Ruleset
+    form_class = RulesetForm
+    redirect_field_name = 'budgets/ruleset_detail.html'
+
+
+class DeleteBudget(LoginRequiredMixin, DeleteView):
+    model = Budget
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user_id=self.request.user.id)
+
+    def get_success_url(self):
+        return reverse('budgets:budget_list')
+
+    def delete(self, *args, **kwargs):
+        messages.success(self.request, "Budget Deleted")
+        return super().delete(*args, **kwargs)
+
+
+class DeleteRuleset(LoginRequiredMixin, DeleteView):
+    model = Ruleset
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user_id=self.request.user.id)
+
+    def get_success_url(self):
+        return reverse('budgets:rulesets')
+
+    def delete(self, *args, **kwargs):
+        messages.success(self.request, "Ruleset Deleted")
+        return super().delete(*args, **kwargs)
+
+
+@login_required()
+def category_remove(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    category.delete()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required()
+def rule_remove(request, pk):
+    rule = get_object_or_404(Rule, pk=pk)
+    rule.delete()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required()
+def budgetcategory_remove(request, pk):
+    budgetcategory = get_object_or_404(BudgetCategory, pk=pk)
+    budgetcategory.delete()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))

@@ -23,15 +23,24 @@
 .delete_icon{
     font-size: 15px;
     color: red;
-
 }
-.list-group-item {
+.list-group-item{
     font-size: 20px;
-    text-color: black;
+    color: black;
 }
-.list-group-item {
-    font-size: 20px;
-    text-color: black;
 .budget_heading{
     text-align: center;
+}
+.expense_transaction{
+    color: red !important;
+}
+
+.earning_transaction{
+    color: green !important;;
+}
+.report_section_heading{
+    font-size: 30px;
+}
+.category_delete_icon{
+    margin-left: 15px;
 }

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+{% block content %}
+<div class="container budget_heading" >
+        <h2>{{report.name}}</h2>
+</div>
+<div class="container report_section_heading" align="center">
+        <hr>
+        <div>
+                Ruleset
+        </div>
+
+
+</div>
+<div class="container report_section" id="ruleset_section" align="center">
+        {% if report.ruleset %}
+
+                <a href="{% url 'budgets:single_ruleset' pk=report.ruleset.id %}">{{report.ruleset.name}}</a>
+        {% else %}
+                <a href="{% url 'reports:add_ruleset' pk=report.id %}">Add Ruleset</a>
+        {% endif %}
+
+</div>
+<div class="container report_section_heading" align="center">
+        <hr>
+        <div>
+                Budget
+        </div>
+
+
+</div>
+<div class="container report_section" id="budget_section" align="center">
+        {% if report.budget %}
+
+                <a href="{% url 'budgets:single_budget' pk=report.ruleset.id %}">{{report.budget.name}}</a>
+        {% else %}
+                <a href="{% url 'reports:add_budget' pk=report.id %}">Add Budget</a>
+        {% endif %}
+
+
+</div>
+<div class="container report_section_heading" align="center">
+        <hr>
+        <div onclick="showSection('transactions_section')">
+                Transactions
+                <i class="bi-caret-right-fill sub-caret" id="transactions_section_caret" ></i>
+        </div>
+
+
+</div>
+<div class="container report_section" id="transactions_section" align="center" style="display: none;">
+        <div style="padding-bottom: 10px;">
+            <a href="{% url 'reports:add_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Import Transactions</a>
+            <a href="#" role="button" class="btn btn-outline-secondary w-80">Clear Transactions</a>
+        </div>
+  <table class="table table-striped">
+       <thead class="table-dark">
+            <tr>
+                <th scope="col">Date </th>
+                <th scope="col">Name</th>
+                <th scope="col">Category</th>
+                <th scope="col">Amount</th>
+            </tr>
+       </thead>
+       <tbody>
+                {% for transaction in report.transaction_set.all %}
+                       <tr>
+                        <td>{{ transaction.date}} </td>
+                        <td>{{ transaction.name}} </td>
+                        <td>{{ transaction.category}} </td>
+                        {% if transaction.is_expense %}
+                           <td class="expense_transaction">{{ transaction.amount}} </td>
+                        {% else %}
+                           <td class="earning_transaction">{{ transaction.amount}} </td>
+                        {% endif %}
+                      </tr>
+                {% endfor %}
+       </tbody>
+  </table>
+
+        <hr>
+
+</div>
+        <div id="report_controls" class="container" align="center">
+        <br><br>
+        <a href="{% url 'reports:update_report' pk=report.id %}" role="button" class="btn btn-outline-secondary  w-80">Edit Report</a>
+        <a href="{% url 'reports:delete_report' pk=report.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Report</a>
+        </div><br><br>
+    <script>
+        function showSection(section_id) {
+            const section = document.getElementById(section_id);
+            var section_caret = document.getElementById(section_id + "_caret");
+              if (section_caret.classList.contains("bi-caret-right-fill")) {
+                section_caret.classList.add("bi-caret-down-fill");
+                section_caret.classList.remove("bi-caret-right-fill");
+
+              }
+              else{
+                section_caret.classList.remove("bi-caret-down-fill");
+                section_caret.classList.add("bi-caret-right-fill");
+              }
+
+              if(section.style.display === 'none'){
+                section.style.display='block';
+              }
+              else{
+                section.style.display='none';
+              }
+        }
+
+
+    </script>
+
+{% endblock %}

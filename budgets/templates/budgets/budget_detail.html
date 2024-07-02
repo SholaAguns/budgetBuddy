@@ -6,25 +6,31 @@
         <h2 >{{budget.name}}</h2>
 </div>
 <div class="container" align="center" >
-  <table>
+  <table class="table table-striped">
+      <thead class="table-dark">
         <tr>
             <th>Category</th>
             <th>Limit</th>
+            <th></th>
         </tr>
-
+      </thead>
+      <tbody>
         {% for budget_category in budget.budgetcategory_set.all %}
                <tr>
                 <td>{{ budget_category.category}} </td>
                 <td>{{ budget_category.limit}} </td>
+                <td><a href="{% url 'budgets:delete_budget_category' pk=budget_category.id %}"><i class="bi bi-trash3"></i></a> </td>
               </tr>
         {% endfor %}
+      </tbody>
 
   </table>
     {% if user.is_authenticated and budget.user == user %}
         <div id="budget_controls" class="container" align="center">
         <br><br>
         <a href="{% url 'budgets:add_budget_category' pk=budget.id %}" role="button" class="btn btn-outline-secondary w-80">Add Category</a>
-        <a href="#" role="button" class="btn btn-outline-danger  w-80">Delete Budget</a>
+        <a href="{% url 'budgets:update_budget' pk=budget.id %}" role="button" class="btn btn-outline-secondary  w-80">Edit Budget</a>
+        <a href="{% url 'budgets:delete_budget' pk=budget.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Budget</a>
         </div><br><br>
     {% endif %}
 </div>
