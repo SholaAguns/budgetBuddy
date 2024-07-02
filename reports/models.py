@@ -2,13 +2,16 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from budgets.models import Budget, Ruleset, Category
+from django.core.validators import FileExtensionValidator
 
 User = get_user_model()
 
 
 class Report(models.Model):
     name = models.CharField(default="", max_length=50, unique=True)
-    transaction_sheet = models.FileField(upload_to='sheets', blank=True)
+    transaction_sheet = models.FileField(upload_to='sheets', blank=False,
+                                         validators=[FileExtensionValidator(['csv',]
+                                                                            )])
     user = models.ForeignKey(User, related_name='report', on_delete=models.CASCADE)
     created_dt = models.DateTimeField(auto_now=True)
     start_date = models.DateField()
@@ -26,9 +29,6 @@ class Report(models.Model):
     def get_absolute_url(self):
         return reverse('reports:single_report', kwargs={'pk': self.id})
 
-    def addtransactions(self):
-        pass
-
     def addruleset(self, ruleset):
         self.ruleset = ruleset
         self.save()
@@ -45,7 +45,7 @@ class Transaction(models.Model):
     name = models.CharField(default="", max_length=150)
     date = models.DateField()
     amount = models.DecimalField(max_digits=7, decimal_places=2)
-    category = models.ForeignKey(Category, on_delete=models.DO_NOTHING)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     report = models.ForeignKey(Report, on_delete=models.CASCADE)
     is_expense = models.BooleanField(default=False)
 

@@ -14,10 +14,11 @@
 </div>
 <div class="container report_section" id="ruleset_section" align="center">
         {% if report.ruleset %}
-
-                <a href="{% url 'budgets:single_ruleset' pk=report.ruleset.id %}">{{report.ruleset.name}}</a>
+                <h3>
+                    <a href="{% url 'budgets:single_ruleset' pk=report.ruleset.id %}">{{report.ruleset.name}}</a>
+                </h3>
         {% else %}
-                <a href="{% url 'reports:add_ruleset' pk=report.id %}">Add Ruleset</a>
+                <a href="{% url 'reports:add_ruleset' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Ruleset</a>
         {% endif %}
 
 </div>
@@ -31,10 +32,11 @@
 </div>
 <div class="container report_section" id="budget_section" align="center">
         {% if report.budget %}
-
+            <h3>
                 <a href="{% url 'budgets:single_budget' pk=report.ruleset.id %}">{{report.budget.name}}</a>
+            </h3>
         {% else %}
-                <a href="{% url 'reports:add_budget' pk=report.id %}">Add Budget</a>
+                <a href="{% url 'reports:add_budget' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Budget</a>
         {% endif %}
 
 
@@ -50,33 +52,40 @@
 </div>
 <div class="container report_section" id="transactions_section" align="center" style="display: none;">
         <div style="padding-bottom: 10px;">
-            <a href="{% url 'reports:add_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Import Transactions</a>
-            <a href="#" role="button" class="btn btn-outline-secondary w-80">Clear Transactions</a>
+            {% if report.ruleset %}
+                <a href="{% url 'reports:add_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Import Transactions</a>
+                <a href="{% url 'reports:analyse_report' pk=report.id %}" role="button" class="btn btn-outline-secondary  w-80">Generate Analysis</a>
+                <a href="{% url 'reports:clear_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Clear Transactions</a>
+            {% else %}
+                <span class="text-danger">No transactions imported. Add ruleset to proceed.</span>
+            {% endif %}
         </div>
-  <table class="table table-striped">
-       <thead class="table-dark">
-            <tr>
-                <th scope="col">Date </th>
-                <th scope="col">Name</th>
-                <th scope="col">Category</th>
-                <th scope="col">Amount</th>
-            </tr>
-       </thead>
-       <tbody>
-                {% for transaction in report.transaction_set.all %}
-                       <tr>
-                        <td>{{ transaction.date}} </td>
-                        <td>{{ transaction.name}} </td>
-                        <td>{{ transaction.category}} </td>
-                        {% if transaction.is_expense %}
-                           <td class="expense_transaction">{{ transaction.amount}} </td>
-                        {% else %}
-                           <td class="earning_transaction">{{ transaction.amount}} </td>
-                        {% endif %}
-                      </tr>
-                {% endfor %}
-       </tbody>
-  </table>
+         {% if report.transaction_set.all %}
+          <table class="table table-striped">
+               <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Date </th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Amount</th>
+                    </tr>
+               </thead>
+               <tbody>
+                        {% for transaction in report.transaction_set.all %}
+                               <tr>
+                                <td>{{ transaction.date}} </td>
+                                <td>{{ transaction.name}} </td>
+                                <td>{{ transaction.category}} </td>
+                                {% if transaction.is_expense %}
+                                   <td class="expense_transaction">{{ transaction.amount}} </td>
+                                {% else %}
+                                   <td class="earning_transaction">{{ transaction.amount}} </td>
+                                {% endif %}
+                              </tr>
+                        {% endfor %}
+               </tbody>
+          </table>
+          {% endif %}
 
         <hr>
 

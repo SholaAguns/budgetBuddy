@@ -34,7 +34,7 @@ class Budget(models.Model):
 
 class BudgetCategory(models.Model):
     budget = models.ForeignKey(Budget, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, on_delete=models.DO_NOTHING, default="")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, default="")
     limit = models.DecimalField(null=False, max_digits=7, decimal_places=2)
 
     def __str__(self):
@@ -60,7 +60,7 @@ class Ruleset(models.Model):
 class Rule(models.Model):
     ruleset = models.ForeignKey(Ruleset, on_delete=models.CASCADE)
     keyword = models.CharField(max_length=100)
-    category = models.ForeignKey(Category, on_delete=models.DO_NOTHING, default="")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, default="")
 
     def __str__(self):
         return self.category

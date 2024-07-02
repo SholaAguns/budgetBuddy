@@ -35,12 +35,14 @@
 
           <ul class="navbar-nav ms-auto">
             {% if user.is_authenticated %}
-
             <li class="nav-item">
-            <a class="nav-link" href="#">Create Report</a>
+            <a class="nav-link" href="{% url 'home' %}"> Home </a>
             </li>
             <li class="nav-item">
-            <a class="nav-link" href="#">My Reports</a>
+            <a class="nav-link" href="{% url 'reports:add_report' %}">Create Report</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link" href="{% url 'reports:report_list' %}">My Reports</a>
             </li>
             <li class="nav-item">
             <a id="logoutbutton" class="nav-link" href="{% url 'accounts:logout' %}">Logout</a>

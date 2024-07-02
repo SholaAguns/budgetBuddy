@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse_lazy, reverse
@@ -27,6 +28,32 @@ class CreateReport(LoginRequiredMixin, CreateView):
 class ReportDetail(LoginRequiredMixin, DetailView):
     login_url = '/login'
     model = Report
+
+    # def get_context_data(self, **kwargs):
+    #     report = Report.objects.get(
+    #         id=self.kwargs.get("pk"),
+    #     )
+    #     context = super().get_context_data(**kwargs)
+    #
+    #     context['expenses'] = Transaction.objects.filter(report=report, is_expense=True) \
+    #         .annotate(total_amount=Sum('amount')) \
+    #         .order_by('-total_amount')
+    #
+    #     context['earnings'] = Transaction.objects.filter(report=report, is_expense=True) \
+    #         .annotate(total_amount=Sum('amount')) \
+    #         .order_by('-total_amount')
+    #
+    #     context['expenses_by_category'] = Transaction.objects.filter(report=report, is_expense=True) \
+    #         .values('category__title') \
+    #         .annotate(total_amount=Sum('amount')) \
+    #         .order_by('-total_amount')
+    #
+    #     context['earnings_by_category'] = Transaction.objects.filter(report=report, is_expense=False) \
+    #         .values('category__title') \
+    #         .annotate(total_amount=Sum('amount')) \
+    #         .order_by('-total_amount')
+    #
+    #     return context
 
 
 class ReportList(LoginRequiredMixin, ListView):
@@ -96,7 +123,16 @@ def add_ruleset(request, pk):
 
 
 @login_required()
-def analyse_spending(request, pk):
+def delete_transactions(request, pk):
+    report = get_object_or_404(Report, pk=pk)
+    transaction_service = TransactionService()
+    transaction_service.clear_transactions(report)
+    report.save()
+    return redirect('reports:single_report', pk=report.id)
+
+
+@login_required()
+def analyse_report(request, pk):
     report = get_object_or_404(Report, pk=pk)
     report.analyse_spending()
     return reverse('reports:single_report', kwargs={'pk': report.id})

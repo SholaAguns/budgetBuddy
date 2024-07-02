@@ -8,7 +8,7 @@ class TransactionService:
     def set_category(rules, transaction_name):
         other_category = Category.objects.get(title='Other')
         for rule in rules:
-            if rule.keyword.lower in transaction_name():
+            if rule.keyword.lower() in transaction_name.lower():
                 return rule.category
 
         return other_category
@@ -28,18 +28,23 @@ class TransactionService:
 
                 # Parse date from dd/mm/yyyy format to yyyy-mm-dd
                 try:
-                    date = datetime.strptime(date_str, '%d/%m/%Y').date().isoformat()
+                    date = datetime.strptime(date_str, '%d/%m/%Y').date()
                 except ValueError:
                     # Handle invalid date format if necessary
                     date = None
 
                 is_expense = amount < 0
 
-                Transaction.objects.create(
-                    report=report,
-                    name=name,
-                    date=date,
-                    amount=abs(amount),
-                    is_expense=is_expense,
-                    category=category
-                )
+                if report.start_date <= date <= report.end_date:
+
+                    Transaction.objects.create(
+                        report=report,
+                        name=name,
+                        date=date,
+                        amount=abs(amount),
+                        is_expense=is_expense,
+                        category=category
+                    )
+
+    def clear_transactions(self, report):
+        Transaction.objects.filter(report=report).delete()
