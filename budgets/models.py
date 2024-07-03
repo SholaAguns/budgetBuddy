@@ -18,8 +18,6 @@ class Budget(models.Model):
     user = models.ForeignKey(User, related_name='budget', on_delete=models.CASCADE)
     name = models.CharField(default="", max_length=50)
     created_dt = models.DateTimeField(auto_now=True)
-    start_date = models.DateField()
-    end_date = models.DateField()
 
     def __str__(self):
         return self.name

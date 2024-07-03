@@ -86,6 +86,11 @@ class BudgetDetail(LoginRequiredMixin, DetailView):
 class BudgetList(LoginRequiredMixin, ListView):
     model = Budget
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['budget_list'] = Budget.objects.filter(user=self.request.user)
+        return context
+
 
 class CategoryList(LoginRequiredMixin, ListView):
     model = Category
@@ -93,6 +98,11 @@ class CategoryList(LoginRequiredMixin, ListView):
 
 class RulesetList(LoginRequiredMixin, ListView):
     model = Ruleset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['ruleset_list'] = Ruleset.objects.filter(user=self.request.user)
+        return context
 
 
 class BudgetUpdate(LoginRequiredMixin, UpdateView):

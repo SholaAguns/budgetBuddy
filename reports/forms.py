@@ -27,8 +27,16 @@ class ReportForm(forms.ModelForm):
 
 
 class AddRulesetForm(forms.Form):
-    ruleset = forms.ModelChoiceField(queryset=Ruleset.objects.all(), label='Select Ruleset')
+    ruleset = forms.ModelChoiceField(queryset=None, label='Select Ruleset')
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['ruleset'].queryset = Ruleset.objects.filter(user=user)
 
 
 class AddBudgetForm(forms.Form):
-    budget = forms.ModelChoiceField(queryset=Budget.objects.all(), label='Select Budget')
+    budget = forms.ModelChoiceField(queryset=None, label='Select Budget')
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['budget'].queryset = Budget.objects.filter(user=user)

@@ -11,10 +11,10 @@
        Welcome {{user.username}}
       </div>
     <ul class="list-group list-group-flush">
-      <li class="list-group-item"><a href="{% url 'reports:report_list' %}">Reports</a></li>
-      <li class="list-group-item"><a href="{% url 'budgets:budget_list' %}">Budgets</a></li>
       <li class="list-group-item"><a href="{% url 'budgets:categories' %}">Categories</a></li>
+      <li class="list-group-item"><a href="{% url 'budgets:budget_list' %}">Budgets</a></li>
       <li class="list-group-item"><a href="{% url 'budgets:rulesets' %}">Rulesets</a></li>
+      <li class="list-group-item"><a href="{% url 'reports:report_list' %}">Reports</a></li>
       <li class="list-group-item"><a href="#">Close account</a></li>
     </ul>
 

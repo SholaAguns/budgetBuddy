@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
+{% load custom_filters %}
 {% block content %}
 <div class="container budget_heading" >
         <h2>{{report.name}}</h2>
@@ -17,6 +18,7 @@
                 <h3>
                     <a href="{% url 'budgets:single_ruleset' pk=report.ruleset.id %}">{{report.ruleset.name}}</a>
                 </h3>
+                <p><a href="{% url 'reports:add_ruleset' pk=report.id %}">Change Ruleset</a></p>
         {% else %}
                 <a href="{% url 'reports:add_ruleset' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Ruleset</a>
         {% endif %}
@@ -33,8 +35,9 @@
 <div class="container report_section" id="budget_section" align="center">
         {% if report.budget %}
             <h3>
-                <a href="{% url 'budgets:single_budget' pk=report.ruleset.id %}">{{report.budget.name}}</a>
+                <a href="{% url 'budgets:single_budget' pk=report.budget.id %}">{{report.budget.name}}</a>
             </h3>
+            <p><a href="{% url 'reports:add_budget' pk=report.id %}">Change Budget</a></p>
         {% else %}
                 <a href="{% url 'reports:add_budget' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Budget</a>
         {% endif %}
@@ -44,7 +47,7 @@
 <div class="container report_section_heading" align="center">
         <hr>
         <div onclick="showSection('transactions_section')">
-                Transactions
+                All Transactions
                 <i class="bi-caret-right-fill sub-caret" id="transactions_section_caret" ></i>
         </div>
 
@@ -54,13 +57,12 @@
         <div style="padding-bottom: 10px;">
             {% if report.ruleset %}
                 <a href="{% url 'reports:add_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Import Transactions</a>
-                <a href="{% url 'reports:analyse_report' pk=report.id %}" role="button" class="btn btn-outline-secondary  w-80">Generate Analysis</a>
                 <a href="{% url 'reports:clear_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Clear Transactions</a>
             {% else %}
                 <span class="text-danger">No transactions imported. Add ruleset to proceed.</span>
             {% endif %}
         </div>
-         {% if report.transaction_set.all %}
+    {% if report.transaction_set.all %}
           <table class="table table-striped">
                <thead class="table-dark">
                     <tr>
@@ -85,16 +87,145 @@
                         {% endfor %}
                </tbody>
           </table>
-          {% endif %}
-
-        <hr>
-
+                     <table class="table table-striped">
+               <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Date </th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Amount</th>
+                    </tr>
+               </thead>
+               <tbody>
+                        {% for transaction in report.transaction_set.all %}
+                               <tr>
+                                <td>{{ transaction.date}} </td>
+                                <td>{{ transaction.name}} </td>
+                                <td>{{ transaction.category}} </td>
+                                {% if transaction.is_expense %}
+                                   <td class="expense_transaction">{{ transaction.amount}} </td>
+                                {% else %}
+                                   <td class="earning_transaction">{{ transaction.amount}} </td>
+                                {% endif %}
+                              </tr>
+                        {% endfor %}
+               </tbody>
+          </table>
+             <hr>
+    {% endif %}
 </div>
-        <div id="report_controls" class="container" align="center">
+{% if report.transaction_set.all %}
+        <div class="container report_section_heading" align="center">
+            <hr>
+            <div onclick="showSection('expenses_section')">
+                    Expenses
+                    <i class="bi-caret-right-fill sub-caret" id="expenses_section_caret" ></i>
+            </div>
+        </div>
+    <div class="container report_section" id="expenses_section" align="center" style="display: none;">
+            <div style="padding-bottom: 10px;">
+            </div>
+                <h3>Total Expenses: ${{ expenses_total }}</h3>
+              <table class="table table-striped">
+                   <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Date </th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Amount</th>
+                        </tr>
+                   </thead>
+                   <tbody>
+                            {% for transaction in expenses %}
+                                   <tr>
+                                    <td>{{ transaction.date}} </td>
+                                    <td>{{ transaction.name}} </td>
+                                    <td>{{ transaction.category}} </td>
+                                    <td class="expense_transaction">{{ transaction.amount}} </td>
+                                  </tr>
+                            {% endfor %}
+
+                   </tbody>
+              </table>
+              <hr>
+
+    </div>
+     <div class="container report_section_heading" align="center">
+            <hr>
+            <div onclick="showSection('earnings_section')">
+                    Earnings
+                    <i class="bi-caret-right-fill sub-caret" id="earnings_section_caret" ></i>
+            </div>
+        </div>
+    <div class="container report_section" id="earnings_section" align="center" style="display: none;">
+            <div style="padding-bottom: 10px;">
+            </div>
+                <h3>Total Earnings: ${{ earnings_total }}</h3>
+              <table class="table table-striped">
+                   <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Date </th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Amount</th>
+                        </tr>
+                   </thead>
+                   <tbody>
+                            {% for transaction in earnings %}
+                                   <tr>
+                                    <td>{{ transaction.date}} </td>
+                                    <td>{{ transaction.name}} </td>
+                                    <td>{{ transaction.category}} </td>
+                                    <td class="earning_transaction">{{ transaction.amount}} </td>
+                                  </tr>
+                            {% endfor %}
+                   </tbody>
+              </table>
+              <hr>
+    </div>
+    {% if report.budget %}
+        <div class="container report_section_heading" align="center">
+            <hr>
+            <div onclick="showSection('comparison_section')">
+                    Budget  vs Actual
+                    <i class="bi-caret-right-fill sub-caret" id="comparison_section_caret" ></i>
+            </div>
+        </div>
+        <div class="container report_section" id="comparison_section" align="center" style="display: none;">
+                  <table class="table table-striped">
+                       <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Category </th>
+                                <th scope="col">Budget</th>
+                                <th scope="col">Actual</th>
+                            </tr>
+                       </thead>
+                       <tbody>
+                                {% for budget_category in report.budget.budgetcategory_set.all  %}
+                                       <tr>
+                                        <td>{{ budget_category.category }} </td>
+                                        <td>{{ budget_category.limit }} </td>
+                                        <td>{{ total_by_category|default_if_none:"0"|get:budget_category.category.title }}</td>
+                                      </tr>
+                                {% endfor %}
+                       </tbody>
+                  </table>
+                  <hr>
+        </div>
+    {% endif %}
+{% endif %}
+
+
+<div id="report_controls" class="container" align="center">
         <br><br>
         <a href="{% url 'reports:update_report' pk=report.id %}" role="button" class="btn btn-outline-secondary  w-80">Edit Report</a>
         <a href="{% url 'reports:delete_report' pk=report.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Report</a>
-        </div><br><br>
+</div><br><br>
+
+
+
+
+
     <script>
         function showSection(section_id) {
             const section = document.getElementById(section_id);

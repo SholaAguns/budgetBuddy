@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from budgets.models import Budget, Ruleset, Category
@@ -39,6 +40,11 @@ class Report(models.Model):
 
     def analyse_spending(self):
         pass
+
+    def total_by_category(self, category):
+        transactions = self.transaction_set.filter(category=category)
+        total_spending = transactions.aggregate(total=Sum('amount'))['total'] or 0
+        return total_spending
 
 
 class Transaction(models.Model):

@@ -2,6 +2,7 @@
 {% load django_bootstrap5 %}
 {% block content %}
 <div class="container" >
+    <h2>Rule form</h2><br><br>
          <form class="budget-form" method="POST">
             {% csrf_token %}
             {% bootstrap_form form %}
