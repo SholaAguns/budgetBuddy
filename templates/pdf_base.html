@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+{% load django_bootstrap5 %}
+<html>
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<!-- Mobile Metas -->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes" />
+
+
+      <title>{{ report.name }} - Report PDF</title>
+  <style>
+      #input{
+        width: 500px;
+        height: 40px;
+        border-radius: 10px;
+      }
+
+      .selection_panel{
+        padding-top: 100px;
+      }
+
+      #brandname{
+        font-family: "Oswald", sans-serif;
+      }
+
+      .response_links{
+        font-size: 20px;
+      }
+
+      .delete_icon{
+          font-size: 15px;
+          color: red;
+      }
+      .list-group-item{
+          font-size: 20px;
+          color: black;
+      }
+      .budget_heading{
+          text-align: center;
+      }
+      .expense_transaction{
+          color: red !important;
+      }
+
+      .earning_transaction{
+          color: green !important;;
+      }
+      .report_section_heading{
+          font-size: 30px;
+      }
+      .category_delete_icon{
+          margin-left: 15px;
+      }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th, .table td {
+            border: 1px solid #ccc;
+            padding: 2px;
+            text-align: left;
+        }
+  </style>
+
+ </head>
+<body class="base_body">
+
+
+
+
+<section class=" content_section">
+
+
+  {% block content %}
+  {% endblock %}
+
+</section>

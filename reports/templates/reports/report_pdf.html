@@ -1,67 +1,21 @@
-{% extends 'base.html' %}
+{% extends 'pdf_base.html' %}
 {% load django_bootstrap5 %}
 {% load custom_filters %}
 {% block content %}
 <div class="container budget_heading" >
         <h2>{{report.name}}</h2>
 </div>
-<div class="container report_section_heading" align="center">
-        <hr>
-        <div>
-                Ruleset
-        </div>
 
-
-</div>
 <div class="container report_section" id="ruleset_section" align="center">
-        {% if report.ruleset %}
-                <h3>
-                    <a href="{% url 'budgets:single_ruleset' pk=report.ruleset.id %}">{{report.ruleset.name}}</a>
-                </h3>
-                <p><a href="{% url 'reports:add_ruleset' pk=report.id %}">Change Ruleset</a></p>
-        {% else %}
-                <a href="{% url 'reports:add_ruleset' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Ruleset</a>
-        {% endif %}
+        Report date: {{ report.start_date }} - {{report.end_date}}
 
 </div>
+
 <div class="container report_section_heading" align="center">
         <hr>
-        <div>
-                Budget
-        </div>
-
-
-</div>
-<div class="container report_section" id="budget_section" align="center">
-        {% if report.budget %}
-            <h3>
-                <a href="{% url 'budgets:single_budget' pk=report.budget.id %}">{{report.budget.name}}</a>
-            </h3>
-            <p><a href="{% url 'reports:add_budget' pk=report.id %}">Change Budget</a></p>
-        {% else %}
-                <a href="{% url 'reports:add_budget' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Budget</a>
-        {% endif %}
-
-
-</div>
-<div class="container report_section_heading" align="center">
-        <hr>
-        <div onclick="showSection('transactions_section')">
                 All Transactions
-                <i class="bi-caret-right-fill sub-caret" id="transactions_section_caret" ></i>
-        </div>
-
-
 </div>
-<div class="container report_section" id="transactions_section" align="center" style="display: none;">
-        <div style="padding-bottom: 10px;">
-            {% if report.ruleset %}
-                <a href="{% url 'reports:add_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Import Transactions</a>
-                <a href="{% url 'reports:clear_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Clear Transactions</a>
-            {% else %}
-                <span class="text-danger">No transactions imported. Add ruleset to proceed.</span>
-            {% endif %}
-        </div>
+<div class="container report_section" id="transactions_section" align="center">
     {% if report.transaction_set.all %}
           <table class="table table-striped">
                <thead class="table-dark">
@@ -117,12 +71,9 @@
 {% if report.transaction_set.all %}
         <div class="container report_section_heading" align="center">
             <hr>
-            <div onclick="showSection('expenses_section')">
                     Expenses
-                    <i class="bi-caret-right-fill sub-caret" id="expenses_section_caret" ></i>
-            </div>
         </div>
-    <div class="container report_section" id="expenses_section" align="center" style="display: none;">
+    <div class="container report_section" id="expenses_section" align="center" >
             <div style="padding-bottom: 10px;">
             </div>
                 <h3>Total Expenses: ${{ expenses_total }}</h3>
@@ -152,12 +103,10 @@
     </div>
      <div class="container report_section_heading" align="center">
             <hr>
-            <div onclick="showSection('earnings_section')">
                     Earnings
-                    <i class="bi-caret-right-fill sub-caret" id="earnings_section_caret" ></i>
-            </div>
+
         </div>
-    <div class="container report_section" id="earnings_section" align="center" style="display: none;">
+    <div class="container report_section" id="earnings_section" align="center">
             <div style="padding-bottom: 10px;">
             </div>
                 <h3>Total Earnings: ${{ earnings_total }}</h3>
@@ -186,12 +135,9 @@
     {% if report.budget %}
         <div class="container report_section_heading" align="center">
             <hr>
-            <div onclick="showSection('comparison_section')">
                     Budget  vs Actual
-                    <i class="bi-caret-right-fill sub-caret" id="comparison_section_caret" ></i>
-            </div>
         </div>
-        <div class="container report_section" id="comparison_section" align="center" style="display: none;">
+        <div class="container report_section" id="comparison_section" align="center" >
                   <table class="table table-striped">
                        <thead class="table-dark">
                             <tr>
@@ -214,42 +160,4 @@
         </div>
     {% endif %}
 {% endif %}
-
-
-<div id="report_controls" class="container" align="center">
-        <br><br>
-        <a href="{% url 'reports:update_report' pk=report.id %}" role="button" class="btn btn-outline-secondary  w-80">Edit Report</a>
-        <a href="{% url 'reports:generate_pdf' pk=report.id %}" role="button" class="btn btn-outline-secondary  w-80">Generate PDF</a>
-        <a href="{% url 'reports:delete_report' pk=report.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Report</a>
-</div><br><br>
-
-
-
-
-
-    <script>
-        function showSection(section_id) {
-            const section = document.getElementById(section_id);
-            var section_caret = document.getElementById(section_id + "_caret");
-              if (section_caret.classList.contains("bi-caret-right-fill")) {
-                section_caret.classList.add("bi-caret-down-fill");
-                section_caret.classList.remove("bi-caret-right-fill");
-
-              }
-              else{
-                section_caret.classList.remove("bi-caret-down-fill");
-                section_caret.classList.add("bi-caret-right-fill");
-              }
-
-              if(section.style.display === 'none'){
-                section.style.display='block';
-              }
-              else{
-                section.style.display='none';
-              }
-        }
-
-
-    </script>
-
 {% endblock %}

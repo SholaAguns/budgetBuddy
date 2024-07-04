@@ -19,9 +19,11 @@
               <tr>
                 <td class="text-center">{{category.title}}
                 </td>
+                {% if   category.title != "Other" %}
                   <td class="text-center">
                     <a href="{% url 'budgets:delete_category' pk=category.id %}"><i class="bi bi-trash3"></i></a>
-                </td>
+                  </td>
+                {% endif %}
               </tr>
 	    {% endfor %}
     </tbody>

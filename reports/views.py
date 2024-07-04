@@ -6,6 +6,7 @@ from django.urls import reverse_lazy, reverse
 from django.views.generic import TemplateView, CreateView, ListView, DetailView, DeleteView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, DetailView, CreateView, ListView
+from easy_pdf.views import PDFTemplateView
 
 from budgets.models import BudgetCategory
 from .models import Report, Transaction
@@ -64,7 +65,7 @@ class ReportDetail(LoginRequiredMixin, DetailView):
             .order_by('-total_amount')
 
         earnings_total = Transaction.objects.filter(report=report, is_expense=False) \
-                                        .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
+                             .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
 
         context['earnings_total'] = f'{earnings_total:.2f}'
 
@@ -141,7 +142,7 @@ def add_budget(request, pk):
 def add_ruleset(request, pk):
     report = get_object_or_404(Report, pk=pk)
     if request.method == 'POST':
-        form = AddRulesetForm(request.user,request.POST)
+        form = AddRulesetForm(request.user, request.POST)
         if form.is_valid():
             ruleset = form.cleaned_data['ruleset']
             report.ruleset = ruleset
@@ -166,3 +167,44 @@ def analyse_report(request, pk):
     report = get_object_or_404(Report, pk=pk)
     report.analyse_spending()
     return reverse('reports:single_report', kwargs={'pk': report.id})
+
+
+class ReportPDFView(LoginRequiredMixin, PDFTemplateView):
+    template_name = 'reports/report_pdf.html'
+
+    def get_context_data(self, **kwargs):
+        report = Report.objects.get(
+            id=self.kwargs.get("pk"),
+        )
+        context = super().get_context_data(**kwargs)
+        context['report'] = report
+        budget_categories = BudgetCategory.objects.filter(budget=report.budget)
+        # Calculate total amount spent per category
+        total_by_category = {}
+
+        for budget_category in budget_categories:
+            total_amount = Transaction.objects.filter(report=report, category=budget_category.category, is_expense=True) \
+                               .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
+            total_by_category[budget_category.category.title] = f'{total_amount:.2f}'
+
+        context['total_by_category'] = total_by_category
+
+        context['expenses'] = Transaction.objects.filter(report=report, is_expense=True) \
+            .annotate(total_amount=Sum('amount')) \
+            .order_by('-total_amount')
+
+        expenses_total = Transaction.objects.filter(report=report, is_expense=True) \
+                             .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
+
+        context['expenses_total'] = f'{expenses_total:.2f}'
+
+        context['earnings'] = Transaction.objects.filter(report=report, is_expense=False) \
+            .annotate(total_amount=Sum('amount')) \
+            .order_by('-total_amount')
+
+        earnings_total = Transaction.objects.filter(report=report, is_expense=False) \
+                             .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
+
+        context['earnings_total'] = f'{earnings_total:.2f}'
+
+        return context

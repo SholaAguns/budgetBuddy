@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ report.name }} - Report PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .heading {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th, .table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="heading">{{ report.name }}</div>
+
+        <!-- Ruleset Section -->
+        <div class="section">
+            <div class="heading">Ruleset</div>
+            {% if report.ruleset %}
+                <p><strong>Name:</strong> {{ report.ruleset.name }}</p>
+                <p><strong>Description:</strong> {{ report.ruleset.description }}</p>
+            {% else %}
+                <p>No ruleset defined.</p>
+            {% endif %}
+        </div>
+
+        <!-- Budget Section -->
+        <div class="section">
+            <div class="heading">Budget</div>
+            {% if report.budget %}
+                <p><strong>Name:</strong> {{ report.budget.name }}</p>
+                <p><strong>Amount:</strong> {{ report.budget.amount }}</p>
+            {% else %}
+                <p>No budget defined.</p>
+            {% endif %}
+        </div>
+
+        <!-- Transactions Section -->
+        <div class="section">
+            <div class="heading">Transactions</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in report.transaction_set.all %}
+                        <tr>
+                            <td>{{ transaction.date }}</td>
+                            <td>{{ transaction.name }}</td>
+                            <td>{{ transaction.category }}</td>
+                            <td>{{ transaction.amount }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Analysis Section -->
+        <div class="section">
+            <div class="heading">Analysis</div>
+            <!-- Add your analysis content here -->
+            <p>This is where you would add analysis specific to the report.</p>
+        </div>
+
+    </div>
+</body>
+</html>

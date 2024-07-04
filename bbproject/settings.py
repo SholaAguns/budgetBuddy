@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django_bootstrap5',
     'accounts',
     'reports',
-    'budgets'
+    'budgets',
+    'easy_pdf'
 ]
 
 MIDDLEWARE = [
