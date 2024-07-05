@@ -62,3 +62,6 @@ class Rule(models.Model):
 
     def __str__(self):
         return self.category
+
+    class Meta:
+        unique_together = ['keyword', 'ruleset']

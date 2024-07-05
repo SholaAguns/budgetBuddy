@@ -7,7 +7,8 @@ from django.views.generic import TemplateView, CreateView, ListView, DetailView,
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, DetailView, CreateView, ListView
 from easy_pdf.views import PDFTemplateView
-
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 from budgets.models import BudgetCategory
 from .models import Report, Transaction
 from .forms import AddBudgetForm, AddRulesetForm, ReportForm
@@ -45,7 +46,7 @@ class ReportDetail(LoginRequiredMixin, DetailView):
         total_by_category = {}
 
         for budget_category in budget_categories:
-            total_amount = Transaction.objects.filter(report=report, category=budget_category.category, is_expense=True) \
+            total_amount = Transaction.objects.filter(report=report, category=budget_category.category) \
                                .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
             total_by_category[budget_category.category.title] = f'{total_amount:.2f}'
 
@@ -69,16 +70,21 @@ class ReportDetail(LoginRequiredMixin, DetailView):
 
         context['earnings_total'] = f'{earnings_total:.2f}'
 
-        # context['expenses_by_category'] = Transaction.objects.filter(report=report, is_expense=True) \
-        #     .values('category__title') \
-        #     .annotate(total_amount=Sum('amount')) \
-        #     .order_by('-total_amount')
-        #
-        # context['earnings_by_category'] = Transaction.objects.filter(report=report, is_expense=False) \
-        #     .values('category__title') \
-        #     .annotate(total_amount=Sum('amount')) \
-        #     .order_by('-total_amount')
+        expenses_by_category = (Transaction.objects.filter(report=report, is_expense=True)
+                                .values('category__title')
+                                .annotate(total_amount=Sum('amount'))
+                                .order_by('-total_amount')[:6])
 
+        earnings_by_category = (Transaction.objects.filter(report=report, is_expense=False)
+                                .values('category__title')
+                                .annotate(total_amount=Sum('amount'))
+                                .order_by('-total_amount')[:6])
+
+        expenses_by_category_json = json.dumps(list(expenses_by_category), cls=DjangoJSONEncoder)
+        earnings_by_category_json = json.dumps(list(earnings_by_category), cls=DjangoJSONEncoder)
+
+        context['expenses_by_category'] = expenses_by_category_json
+        context['earnings_by_category'] = earnings_by_category_json
         return context
 
 
@@ -118,7 +124,10 @@ class DeleteReport(LoginRequiredMixin, DeleteView):
 def add_transactions(request, pk):
     report = get_object_or_404(Report, pk=pk)
     transaction_service = TransactionService()
-    transaction_service.create_transactions(report)
+    if report.transaction_sheet.name.endswith('.pdf'):
+        transaction_service.create_transactions_from_pdf(report)
+    else:
+        transaction_service.create_transactions_from_csv(report)
     report.save()
     return redirect('reports:single_report', pk=report.id)
 
@@ -183,7 +192,7 @@ class ReportPDFView(LoginRequiredMixin, PDFTemplateView):
         total_by_category = {}
 
         for budget_category in budget_categories:
-            total_amount = Transaction.objects.filter(report=report, category=budget_category.category, is_expense=True) \
+            total_amount = Transaction.objects.filter(report=report, category=budget_category.category) \
                                .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
             total_by_category[budget_category.category.title] = f'{total_amount:.2f}'
 
@@ -206,5 +215,21 @@ class ReportPDFView(LoginRequiredMixin, PDFTemplateView):
                              .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
 
         context['earnings_total'] = f'{earnings_total:.2f}'
+
+        expenses_by_category = (Transaction.objects.filter(report=report, is_expense=True)
+                                .values('category__title')
+                                .annotate(total_amount=Sum('amount'))
+                                .order_by('-total_amount')[:6])
+
+        earnings_by_category = (Transaction.objects.filter(report=report, is_expense=False)
+                                .values('category__title')
+                                .annotate(total_amount=Sum('amount'))
+                                .order_by('-total_amount')[:6])
+
+        expenses_by_category_json = json.dumps(list(expenses_by_category), cls=DjangoJSONEncoder)
+        earnings_by_category_json = json.dumps(list(earnings_by_category), cls=DjangoJSONEncoder)
+
+        context['expenses_by_category'] = expenses_by_category_json
+        context['earnings_by_category'] = earnings_by_category_json
 
         return context

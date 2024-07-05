@@ -4,6 +4,7 @@
 {% block content %}
 <div class="container budget_heading" >
         <h2>{{report.name}}</h2>
+        <h5>Date: {{ report.start_date }} - {{report.end_date}}</h5>
 </div>
 <div class="container report_section_heading" align="center">
         <hr>
@@ -125,7 +126,11 @@
     <div class="container report_section" id="expenses_section" align="center" style="display: none;">
             <div style="padding-bottom: 10px;">
             </div>
-                <h3>Total Expenses: ${{ expenses_total }}</h3>
+                <h3>Total Expenses: ${{ expenses_total }}</h3><br><br>
+                <h5>Top categories</h5>
+                <div class="container report_section" id="expenses_chart_section" align="center">
+                     <canvas id="expensesPieChart" width="250" height="100"></canvas>
+                </div><br><br>
               <table class="table table-striped">
                    <thead class="table-dark">
                         <tr>
@@ -160,7 +165,12 @@
     <div class="container report_section" id="earnings_section" align="center" style="display: none;">
             <div style="padding-bottom: 10px;">
             </div>
-                <h3>Total Earnings: ${{ earnings_total }}</h3>
+                <h3>Total Earnings: ${{ earnings_total }}</h3><br><br>
+
+                <h5>Top categories</h5>
+                <div class="container report_section" id="earnings_chart_section" align="center">
+                     <canvas id="earningsPieChart" width="250" height="100"></canvas>
+                </div><br><br>
               <table class="table table-striped">
                    <thead class="table-dark">
                         <tr>
@@ -227,7 +237,154 @@
 
 
 
-    <script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('expensesPieChart').getContext('2d');
+
+        // Load the JSON data from the context
+        const expensesData = JSON.parse('{{ expenses_by_category|safe }}');
+
+        let labels = [];
+        let data = [];
+        expensesData.forEach(item => {
+            labels.push(item.category__title);
+            data.push(parseFloat(item.total_amount));  // Ensure the data is parsed as a float
+        });
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Expenses by Category',
+                    data: data,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const amount = parseFloat(context.raw) || 0;
+                                return `${label}: $${amount.toFixed(2)}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('earningsPieChart').getContext('2d');
+
+        // Load the JSON data from the context
+        const earningsData = JSON.parse('{{ earnings_by_category|safe }}');
+
+        let labels = [];
+        let data = [];
+        earningsData.forEach(item => {
+            labels.push(item.category__title);
+            data.push(parseFloat(item.total_amount));  // Ensure the data is parsed as a float
+        });
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Earnings by Category',
+                    data: data,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const amount = parseFloat(context.raw) || 0;
+                                return `${label}: $${amount.toFixed(2)}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+<script>
         function showSection(section_id) {
             const section = document.getElementById(section_id);
             var section_caret = document.getElementById(section_id + "_caret");
@@ -248,8 +405,6 @@
                 section.style.display='none';
               }
         }
-
-
     </script>
 
 {% endblock %}

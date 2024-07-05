@@ -2,6 +2,7 @@ import csv
 from datetime import datetime
 from .models import Transaction
 from budgets.models import Rule, Category
+import fitz  # PyMuPDF
 
 
 class TransactionService:
@@ -13,7 +14,7 @@ class TransactionService:
 
         return other_category
 
-    def create_transactions(self, report):
+    def create_transactions_from_csv(self, report):
         rules = Rule.objects.filter(ruleset=report.ruleset)
         with open(report.transaction_sheet.path, 'r') as f:
             reader = csv.reader(f)
@@ -36,7 +37,6 @@ class TransactionService:
                 is_expense = amount < 0
 
                 if report.start_date <= date <= report.end_date:
-
                     Transaction.objects.create(
                         report=report,
                         name=name,
@@ -45,6 +45,54 @@ class TransactionService:
                         is_expense=is_expense,
                         category=category
                     )
+
+    def create_transactions_from_pdf(self, report):
+        document = fitz.open(report.transaction_sheet.path)
+        rules = Rule.objects.filter(ruleset=report.ruleset)
+        transactions = []
+
+        for page_num in range(document.page_count):
+            page = document.load_page(page_num)
+            text = page.get_text("text")
+            lines = text.split('\n')
+
+            for line in lines:
+                # Example logic to parse the transaction data from a line
+                try:
+                    # Assuming the format is: "DD MMM YY DESCRIPTION LOCATION AMOUNT BALANCE"
+                    parts = line.split()
+                    if len(parts) < 5:
+                        continue
+
+                    date_str = " ".join(parts[0:3])
+                    description = " ".join(parts[3:-2])
+                    amount_str = parts[-2]
+                    date = datetime.strptime(date_str, '%d %b %y').date()
+
+                    # Parse amount, handling for negative amounts
+                    amount = float(amount_str.replace(',', '').replace('CR', ''))
+
+                    # Determine if it's an expense or income
+                    is_expense = 'CR' not in amount_str
+
+                    # Category could be determined here or later
+                    category = TransactionService.set_category(rules, description)
+
+                    if report.start_date <= date <= report.end_date:
+                        Transaction.objects.create(
+                            report=report,
+                            name=description,
+                            date=date,
+                            amount=abs(amount),
+                            is_expense=is_expense,
+                            category=category
+                        )
+
+                except Exception as e:
+                    print(f"Error parsing line: {line} - {e}")
+
+
+
 
     def clear_transactions(self, report):
         Transaction.objects.filter(report=report).delete()
