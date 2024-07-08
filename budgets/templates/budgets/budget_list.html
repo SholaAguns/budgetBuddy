@@ -5,9 +5,9 @@
 <div class="container budget_heading" >
         <h2>My Budgets</h2>
 </div>
-<div class="container" align="center">
+<div id="budgetlist" class="container" align="center">
     {% for budget in budget_list %}
-    <h3>
+    <h3 class="budget_name">
         <a href="{% url 'budgets:single_budget' pk=budget.id %}">{{ budget.name }}</a>
     </h3>
     <hr>

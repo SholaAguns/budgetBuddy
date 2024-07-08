@@ -5,14 +5,14 @@
 <div class="container budget_heading" >
         <h2>My Rulesets</h2>
 </div>
-<div class="container" align="center">
+<div id="rulesetlist" class="container" align="center">
     {% for ruleset in ruleset_list %}
-    <h3>
+    <h3 class="ruleset_name">
         <a href="{% url 'budgets:single_ruleset' pk=ruleset.id %}">{{ ruleset.name }}</a>
     </h3>
     <hr>
 	{% endfor %}
-        
+
     {% if user.is_authenticated %}
         <div id="budget_controls" class="container" align="center">
         <br><br>

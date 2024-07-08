@@ -15,7 +15,9 @@
       <li class="list-group-item"><a href="{% url 'budgets:budget_list' %}">Budgets</a></li>
       <li class="list-group-item"><a href="{% url 'budgets:rulesets' %}">Rulesets</a></li>
       <li class="list-group-item"><a href="{% url 'reports:report_list' %}">Reports</a></li>
-      <li class="list-group-item"><a href="#">Close account</a></li>
+      {% if user.is_authenticated %}
+      <li class="list-group-item"><a href="{% url 'accounts:confirm_delete_user' %}">Close account</a></li>
+      {% endif %}
     </ul>
 
     </div>

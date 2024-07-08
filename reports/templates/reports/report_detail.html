@@ -2,7 +2,7 @@
 {% load django_bootstrap5 %}
 {% load custom_filters %}
 {% block content %}
-<div class="container budget_heading" >
+<div class="container report_heading" >
         <h2>{{report.name}}</h2>
         <h5>Date: {{ report.start_date }} - {{report.end_date}}</h5>
 </div>
@@ -19,9 +19,9 @@
                 <h3>
                     <a href="{% url 'budgets:single_ruleset' pk=report.ruleset.id %}">{{report.ruleset.name}}</a>
                 </h3>
-                <p><a href="{% url 'reports:add_ruleset' pk=report.id %}">Change Ruleset</a></p>
+                <p><a id="change_ruleset_btn" href="{% url 'reports:add_ruleset' pk=report.id %}">Change Ruleset</a></p>
         {% else %}
-                <a href="{% url 'reports:add_ruleset' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Ruleset</a>
+                <a id="add_ruleset_btn" href="{% url 'reports:add_ruleset' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Ruleset</a>
         {% endif %}
 
 </div>
@@ -38,9 +38,9 @@
             <h3>
                 <a href="{% url 'budgets:single_budget' pk=report.budget.id %}">{{report.budget.name}}</a>
             </h3>
-            <p><a href="{% url 'reports:add_budget' pk=report.id %}">Change Budget</a></p>
+            <p><a id="chnage_budget_btn" href="{% url 'reports:add_budget' pk=report.id %}">Change Budget</a></p>
         {% else %}
-                <a href="{% url 'reports:add_budget' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Budget</a>
+                <a id="add_budget_btn" href="{% url 'reports:add_budget' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Budget</a>
         {% endif %}
 
 
@@ -88,35 +88,11 @@
                         {% endfor %}
                </tbody>
           </table>
-                     <table class="table table-striped">
-               <thead class="table-dark">
-                    <tr>
-                        <th scope="col">Date </th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Category</th>
-                        <th scope="col">Amount</th>
-                    </tr>
-               </thead>
-               <tbody>
-                        {% for transaction in report.transaction_set.all %}
-                               <tr>
-                                <td>{{ transaction.date}} </td>
-                                <td>{{ transaction.name}} </td>
-                                <td>{{ transaction.category}} </td>
-                                {% if transaction.is_expense %}
-                                   <td class="expense_transaction">{{ transaction.amount}} </td>
-                                {% else %}
-                                   <td class="earning_transaction">{{ transaction.amount}} </td>
-                                {% endif %}
-                              </tr>
-                        {% endfor %}
-               </tbody>
-          </table>
              <hr>
     {% endif %}
 </div>
 {% if report.transaction_set.all %}
-        <div class="container report_section_heading" align="center">
+        <div class="container expenses_section_heading report_section_heading" align="center">
             <hr>
             <div onclick="showSection('expenses_section')">
                     Expenses
@@ -155,7 +131,7 @@
               <hr>
 
     </div>
-     <div class="container report_section_heading" align="center">
+     <div class="container earnings_section_heading report_section_heading" align="center">
             <hr>
             <div onclick="showSection('earnings_section')">
                     Earnings
@@ -194,7 +170,7 @@
               <hr>
     </div>
     {% if report.budget %}
-        <div class="container report_section_heading" align="center">
+        <div class="container budvact_section report_section_heading" align="center">
             <hr>
             <div onclick="showSection('comparison_section')">
                     Budget  vs Actual
