@@ -23,14 +23,14 @@ describe('BudgetBuddy Report Flow Test', () => {
         cy.createBudget(budgetName);
         cy.addBudgetCategory(budgetName, 'Food and Groceries', '500');
         cy.addBudgetCategory(budgetName, 'Entertainment', '100');
-        cy.addBudgetCategory(budgetName, 'Transportation', '300');
+        cy.addBudgetCategory(budgetName, 'Takeout', '300');
         cy.addBudgetCategory(budgetName, 'Sports and Exercise', '30');
 
         // Create ruleset
         cy.createRuleset(rulesetName);
         cy.addRule(rulesetName, 'Lidl', 'Food and Groceries');
         cy.addRule(rulesetName, 'Odeon', 'Entertainment');
-        cy.addRule(rulesetName, 'TFL', 'Transportation');
+        cy.addRule(rulesetName, 'Sizzlers', 'Takeout');
         cy.addRule(rulesetName, 'Footy', 'Sports and Exercise');
 
         cy.createReport(reportName, startDate, endDate, transactionFilename);

@@ -67,11 +67,11 @@ describe('BudgetBuddy Budgets Test Flow', () => {
             //Add Budget Categories
           cy.addBudgetCategory(budgetName, 'Food and Groceries', '500');
           cy.addBudgetCategory(budgetName, 'Entertainment', '100');
-          cy.addBudgetCategory(budgetName, 'Transportation', '300');
+          cy.addBudgetCategory(budgetName, 'Takeout', '300');
 
 
           //Delete Budget Category
-          cy.contains('tbody tr', 'Transportation')
+          cy.contains('tbody tr', 'Takeout')
          .find('a')
          .click();
 
@@ -96,16 +96,16 @@ describe('BudgetBuddy Budgets Test Flow', () => {
               //Add rules
             cy.addRule(rulesetName, 'Lidl', 'Food and Groceries');
             cy.addRule(rulesetName, 'Odeon', 'Entertainment');
-            cy.addRule(rulesetName, 'TFL', 'Transportation');
+            cy.addRule(rulesetName, 'The Grill', 'Takeout');
 
 
             //Delete rule
-            cy.contains('tbody tr', 'TFL')
+            cy.contains('tbody tr', 'The Grill')
            .find('a')
            .click();
 
            //Delete rule Assertion
-           cy.contains('tbody tr', 'TFL').should('not.exist');
+           cy.contains('tbody tr', 'The Grill').should('not.exist');
 
            cy.deleteRuleset(rulesetName);
 

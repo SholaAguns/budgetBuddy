@@ -9,7 +9,7 @@ def populate_categories(apps, schema_editor):
         'Food and Groceries',
         'Utilities',
         'Entertainment',
-        'Transportation',
+        'Transportation and Parking',
         'Shopping',
         'Car',
         'Insurance',
@@ -17,8 +17,11 @@ def populate_categories(apps, schema_editor):
         'Salary',
         'Sports and Exercise',
         'Rent',
-        'Other'
-
+        'Other',
+        'Takeout',
+        'Savings and Investments',
+        'Subscriptions',
+        'Revolut',
 
         # Add more initial categories as needed
     ]
@@ -27,7 +30,6 @@ def populate_categories(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('budgets', '0001_initial'),
     ]
