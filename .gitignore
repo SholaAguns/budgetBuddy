@@ -2,6 +2,4 @@ db.sqlite3
 
 media
 
-budgets/migrations/*my_ruleset.py
-
 bkp

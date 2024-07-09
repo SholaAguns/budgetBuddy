@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
-from accounts.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 class Category(models.Model):
@@ -14,7 +15,6 @@ class Category(models.Model):
 
     class Meta:
         ordering = ['title']
-        unique_together = ['title',]
 
 
 class Budget(models.Model):
