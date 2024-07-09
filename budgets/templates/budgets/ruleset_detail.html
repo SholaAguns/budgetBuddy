@@ -30,6 +30,7 @@
         <br><br>
         <a href="{% url 'budgets:add_rule' pk=ruleset.id %}" role="button" class="btn btn-outline-secondary w-80">Add Rule</a>
         <a href="{% url 'budgets:update_ruleset' pk=ruleset.id %}" role="button" class="btn btn-outline-secondary  w-80">Edit Ruleset</a>
+        <a href="{% url 'budgets:duplicate_ruleset' pk=ruleset.id %}" role="button" class="btn btn-outline-secondary  w-80">Duplicate Ruleset</a>
         <a href="{% url 'budgets:delete_ruleset' pk=ruleset.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Ruleset</a>
         </div><br><br>
     {% endif %}

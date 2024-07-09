@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, DetailView, CreateView, ListView, UpdateView, DeleteView
 from .models import Category, BudgetCategory, Budget, Rule, Ruleset
@@ -168,3 +168,49 @@ def budgetcategory_remove(request, pk):
     budgetcategory = get_object_or_404(BudgetCategory, pk=pk)
     budgetcategory.delete()
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required()
+def budget_duplicate(request, pk):
+    existing_budget = get_object_or_404(Budget, pk=pk)
+    existing_budget_categories = BudgetCategory.objects.filter(budget=existing_budget)
+    new_budget = existing_budget
+    new_budget.pk = None
+    if request.method == 'POST':
+        form = BudgetForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            new_budget.name = name
+            new_budget.save()
+            for category in existing_budget_categories:
+                new_category = category
+                new_category.pk = None
+                new_category.budget = new_budget
+                new_category.save()
+        return redirect('budgets:single_budget', pk=new_budget.id)
+    else:
+        form = BudgetForm(request.POST)
+        return render(request, 'budgets/budget_form.html', {'form': form, 'budget': existing_budget})
+
+
+@login_required()
+def ruleset_duplicate(request, pk):
+    existing_ruleset = get_object_or_404(Ruleset, pk=pk)
+    existing_rules = Rule.objects.filter(ruleset=existing_ruleset)
+    new_ruleset = existing_ruleset
+    new_ruleset.pk = None
+    if request.method == 'POST':
+        form = RulesetForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            new_ruleset.name = name
+            new_ruleset.save()
+            for rule in existing_rules:
+                new_rule = rule
+                new_rule.pk = None
+                new_rule.ruleset = new_ruleset
+                new_rule.save()
+        return redirect('budgets:single_ruleset', pk=new_ruleset.id)
+    else:
+        form = RulesetForm(request.POST)
+        return render(request, 'budgets/ruleset_form.html', {'form': form, 'ruleset': existing_ruleset})

@@ -17,7 +17,8 @@ def populate_categories(apps, schema_editor):
         'Salary',
         'Sports and Exercise',
         'Rent',
-        'Other'
+        'Other',
+        'Takeout'
 
 
         # Add more initial categories as needed

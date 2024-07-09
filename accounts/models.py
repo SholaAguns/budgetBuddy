@@ -12,6 +12,6 @@ class User(auth.models.User, auth.models.PermissionsMixin):
         return "@{}".format(self.username)
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.title)
+        self.slug = slugify(self.username)
         self.created_dt = timezone.now()
         super().save(*args, **kwargs)

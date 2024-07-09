@@ -1,7 +1,6 @@
 from django.db import models
 from django.urls import reverse
-from django.contrib.auth import get_user_model
-User = get_user_model()
+from accounts.models import User
 
 
 class Category(models.Model):
@@ -12,6 +11,10 @@ class Category(models.Model):
 
     def get_absolute_url(self):
         return reverse('budgets:categories')
+
+    class Meta:
+        ordering = ['title']
+        unique_together = ['title',]
 
 
 class Budget(models.Model):
