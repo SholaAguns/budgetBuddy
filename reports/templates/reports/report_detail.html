@@ -203,6 +203,11 @@
                                         <td>{{ total_by_category|default_if_none:"0"|get:budget_category.category.title }}</td>
                                       </tr>
                                 {% endfor %}
+                                    <tr class="table-dark">
+                                        <td>Total </td>
+                                        <td>{{ budget_category_total }} </td>
+                                        <td>{{ total_expenses_by_budget }}</td>
+                                    </tr>
                        </tbody>
                   </table>
                   <hr>

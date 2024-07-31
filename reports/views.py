@@ -43,15 +43,20 @@ class ReportDetail(LoginRequiredMixin, DetailView):
         report = self.object
         # budget_categories = report.budget.budgetcategory_set.all()
         budget_categories = BudgetCategory.objects.filter(budget=report.budget)
-        # Calculate total amount spent per category
+        budget_category_total = 0
+        total_expenses_by_budget = 0
         total_by_category = {}
 
         for budget_category in budget_categories:
             total_amount = Transaction.objects.filter(report=report, category=budget_category.category) \
                                .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
             total_by_category[budget_category.category.title] = f'{total_amount:.2f}'
+            budget_category_total += budget_category.limit
+            total_expenses_by_budget += total_amount
 
         context['total_by_category'] = total_by_category
+        context['total_expenses_by_budget'] = f'{total_expenses_by_budget:.2f}'
+        context['budget_category_total'] = budget_category_total
 
         context['expenses'] = Transaction.objects.filter(report=report, is_expense=True) \
             .annotate(total_amount=Sum('amount')) \
@@ -189,15 +194,20 @@ class ReportPDFView(LoginRequiredMixin, PDFTemplateView):
         context = super().get_context_data(**kwargs)
         context['report'] = report
         budget_categories = BudgetCategory.objects.filter(budget=report.budget)
-        # Calculate total amount spent per category
+        budget_category_total = 0
+        total_expenses_by_budget = 0
         total_by_category = {}
 
         for budget_category in budget_categories:
             total_amount = Transaction.objects.filter(report=report, category=budget_category.category) \
                                .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
             total_by_category[budget_category.category.title] = f'{total_amount:.2f}'
+            budget_category_total += budget_category.limit
+            total_expenses_by_budget += total_amount
 
         context['total_by_category'] = total_by_category
+        context['total_expenses_by_budget'] = f'{total_expenses_by_budget:.2f}'
+        context['budget_category_total'] = budget_category_total
 
         context['expenses'] = Transaction.objects.filter(report=report, is_expense=True) \
             .annotate(total_amount=Sum('amount')) \
