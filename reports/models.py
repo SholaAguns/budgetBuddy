@@ -19,6 +19,7 @@ class Report(models.Model):
     end_date = models.DateField()
     budget = models.ForeignKey(Budget, on_delete=models.DO_NOTHING, null=True)
     ruleset = models.ForeignKey(Ruleset, on_delete=models.DO_NOTHING, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ['-created_dt']

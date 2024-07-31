@@ -1,7 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.views.generic import TemplateView, CreateView, ListView, DetailView, DeleteView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,7 +12,7 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from budgets.models import BudgetCategory
 from .models import Report, Transaction
-from .forms import AddBudgetForm, AddRulesetForm, ReportForm
+from .forms import AddBudgetForm, AddRulesetForm, ReportForm, ReportNotesForm
 from django.contrib import messages
 from .services import TransactionService
 
@@ -233,3 +234,18 @@ class ReportPDFView(LoginRequiredMixin, PDFTemplateView):
         context['earnings_by_category'] = earnings_by_category_json
 
         return context
+
+
+@login_required()
+def update_report_notes(request, pk):
+    is_ajax_request = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+    if request.method == 'POST' and is_ajax_request:
+        report = get_object_or_404(Report, id=pk)
+        form = ReportNotesForm(request.POST, instance=report)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True, 'notes': report.notes})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+    return JsonResponse({'success': False, 'message': 'Invalid request'})

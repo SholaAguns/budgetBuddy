@@ -15,6 +15,7 @@ urlpatterns = [
     path('report/<int:pk>/clear_transactions', views.delete_transactions, name='clear_transactions'),
     path('report/<int:pk>/add_budget', views.add_budget, name='add_budget'),
     path('report/<int:pk>/add_ruleset', views.add_ruleset, name='add_ruleset'),
+    path('report/<int:pk>/add_notes', views.update_report_notes, name='update_report_notes'),
     path('report/<int:pk>/pdf', views.ReportPDFView.as_view(), name='generate_pdf'),
     #path('report/<int:pk>/import_transactions', views.add_transactions, name='add_transactions'),
 ]

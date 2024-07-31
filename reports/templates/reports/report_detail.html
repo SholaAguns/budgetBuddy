@@ -2,6 +2,15 @@
 {% load django_bootstrap5 %}
 {% load custom_filters %}
 {% block content %}
+<style>
+    #edit_notes_section{
+    display: none;
+    margin-top: 1.5em;
+}
+    #submit_notes_btn{
+    margin-top: 1.5em;
+}
+</style>
 <div class="container report_heading" >
         <h2>{{report.name}}</h2>
         <h5>Date: {{ report.start_date }} - {{report.end_date}}</h5>
@@ -201,6 +210,23 @@
     {% endif %}
 {% endif %}
 
+<div class="container notes_section report_section_heading" align="center">
+            <hr>
+            <div onclick="showSection('notes_section')">
+                    Notes
+                    <i class="bi-caret-right-fill sub-caret" id="notes_section_caret" ></i>
+            </div>
+</div>
+<div class="container report_section" id="notes_section" align="center" style="display: none;">
+        <p class="lead" id="report_notes">{{ report.notes }}</p>
+        <button class="btn btn-outline-primary" id="edit_notes_btn">Edit</button>
+
+    <div id="edit_notes_section">
+        <textarea class="form-control" id="notes_input">{{ report.notes }}</textarea>
+        <button class="btn btn-outline-primary" id="submit_notes_btn">Submit</button>
+    </div>
+</div>
+
 
 <div id="report_controls" class="container" align="center">
         <br><br>
@@ -216,6 +242,40 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $('#edit_notes_btn').click(function() {
+                $('#report_notes, #edit_notes_btn').hide();
+                $('#edit_notes_section').show();
+           });
+
+        $(document).ready(function() {
+            $('#submit_notes_btn').click(function() {
+                var notes = $('#notes_input').val();
+                var reportId = {{ report.id }};
+
+                $.ajax({
+                    url: "/reports/report/" + reportId + "/add_notes",
+                    type: 'POST',
+                    data: {
+                        'notes': notes,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#report_notes').text(response.notes);
+                            $('#report_notes, #edit_notes_btn').show();
+                            $('#edit_notes_section').hide();
+                        } else {
+                            alert('Failed to update notes');
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred');
+                    }
+                });
+            });
+        });
+    </script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('expensesPieChart').getContext('2d');

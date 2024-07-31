@@ -1,25 +1,20 @@
 .navbar{
   border-bottom: 0.5px solid black;
 }
-
 #input{
   width: 500px;
   height: 40px;
   border-radius: 10px;
 }
-
 .selection_panel{
   padding-top: 100px;
 }
-
 #brandname{
   font-family: "Oswald", sans-serif;
 }
-
 .response_links{
   font-size: 20px;
 }
-
 .delete_icon{
     font-size: 15px;
     color: red;
@@ -44,3 +39,5 @@
 .category_delete_icon{
     margin-left: 15px;
 }
+
+

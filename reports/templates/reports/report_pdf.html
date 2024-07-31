@@ -41,30 +41,7 @@
                         {% endfor %}
                </tbody>
           </table>
-                     <table class="table table-striped">
-               <thead class="table-dark">
-                    <tr>
-                        <th scope="col">Date </th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Category</th>
-                        <th scope="col">Amount</th>
-                    </tr>
-               </thead>
-               <tbody>
-                        {% for transaction in report.transaction_set.all %}
-                               <tr>
-                                <td>{{ transaction.date}} </td>
-                                <td>{{ transaction.name}} </td>
-                                <td>{{ transaction.category}} </td>
-                                {% if transaction.is_expense %}
-                                   <td class="expense_transaction">{{ transaction.amount}} </td>
-                                {% else %}
-                                   <td class="earning_transaction">{{ transaction.amount}} </td>
-                                {% endif %}
-                              </tr>
-                        {% endfor %}
-               </tbody>
-          </table>
+
              <hr>
     {% endif %}
 </div>
@@ -160,6 +137,14 @@
         </div>
     {% endif %}
 {% endif %}
+     <div class="container report_section_heading" align="center">
+            <hr>
+                    Notes
+
+     </div>
+     <div class="container report_section" id="notes_section" >
+         <p class="lead" id="report_notes">{{ report.notes }}</p>
+     </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

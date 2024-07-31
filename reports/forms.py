@@ -40,3 +40,9 @@ class AddBudgetForm(forms.Form):
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['budget'].queryset = Budget.objects.filter(user=user)
+
+
+class ReportNotesForm(forms.ModelForm):
+    class Meta:
+        model = Report
+        fields = ['notes']
