@@ -18,7 +18,7 @@ class TransactionService:
         rules = Rule.objects.filter(ruleset=report.ruleset)
         with open(report.transaction_sheet.path, 'r') as f:
             reader = csv.reader(f)
-            next(reader)  # Skip the header row
+            #next(reader)  # Skip the header row
 
             for row in reader:
                 date_str = row[0].strip()

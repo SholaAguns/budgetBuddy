@@ -22,6 +22,11 @@
                 <td><a href="{% url 'budgets:delete_budget_category' pk=budget_category.id %}"><i class="bi bi-trash3"></i></a> </td>
               </tr>
         {% endfor %}
+                <tr class="table-dark">
+                    <td>Total</td>
+                    <td>{{ total_limit }}</td>
+                    <td></td>
+                </tr>
       </tbody>
 
   </table>
