@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import HttpResponseRedirect, JsonResponse
@@ -12,7 +14,7 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from budgets.models import BudgetCategory
 from .models import Report, Transaction
-from .forms import AddBudgetForm, AddRulesetForm, ReportForm, ReportNotesForm
+from .forms import AddBudgetForm, AddRulesetForm, ReportForm, ReportNotesForm, TransactionForm
 from django.contrib import messages
 from .services import TransactionService
 
@@ -28,6 +30,23 @@ class CreateReport(LoginRequiredMixin, CreateView):
         self.object.user = self.request.user
         self.object.save()
         return super().form_valid(form)
+
+class CreateTransaction(LoginRequiredMixin, CreateView):
+    login_url = '/login'
+    model = Transaction
+    form_class = TransactionForm
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        report = Report.objects.get(
+            id=self.kwargs.get("pk"),
+        )
+        self.object.report = report
+        self.object.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('reports:single_report', kwargs={'pk': self.object.report.id})
 
 
 class ReportDetail(LoginRequiredMixin, DetailView):
@@ -49,11 +68,18 @@ class ReportDetail(LoginRequiredMixin, DetailView):
 
         for budget_category in budget_categories:
             total_amount = Transaction.objects.filter(report=report, category=budget_category.category) \
-                               .aggregate(total_amount=Sum('amount'))['total_amount'] or 0
-            total_by_category[budget_category.category.title] = f'{total_amount:.2f}'
+                               .aggregate(total_amount=Sum('amount'))['total_amount'] or Decimal('0.00')
+            total_by_category[budget_category.category.title] = total_amount
             budget_category_total += budget_category.limit
             total_expenses_by_budget += total_amount
 
+        differences = {}
+        for cat in budget_categories:
+            actual = total_by_category.get(cat.category.title, Decimal('0.00'))
+            differences[cat.category.title] = cat.limit - actual
+
+        context['differences'] = differences
+        context['total_difference'] = budget_category_total - total_expenses_by_budget
         context['total_by_category'] = total_by_category
         context['total_expenses_by_budget'] = f'{total_expenses_by_budget:.2f}'
         context['budget_category_total'] = budget_category_total

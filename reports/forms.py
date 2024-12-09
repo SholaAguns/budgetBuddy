@@ -25,6 +25,13 @@ class ReportForm(forms.ModelForm):
 
         return cleaned_data
 
+class TransactionForm(forms.ModelForm):
+
+    class Meta:
+        model= Transaction
+        fields = ('date', 'name', 'amount', 'category', 'is_expense',)
+        widgets = {'date': DateInput()}
+
 
 class AddRulesetForm(forms.Form):
     ruleset = forms.ModelChoiceField(queryset=None, label='Select Ruleset')

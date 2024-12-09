@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container">
+    <h2>Add Multiple Transactions</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="form-group">
+                {% bootstrap_form form %}
+            </div>
+        {% endfor %}
+        <button class="btn btn-outline-primary" type="submit">Save</button>
+        <a onclick="javascript:history.back();" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

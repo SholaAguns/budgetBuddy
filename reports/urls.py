@@ -3,6 +3,8 @@ from . import views
 from django.conf.urls.static import static
 from django.conf import settings
 
+from .views import add_transactions
+
 app_name = "reports"
 
 urlpatterns = [
@@ -17,5 +19,6 @@ urlpatterns = [
     path('report/<int:pk>/add_ruleset', views.add_ruleset, name='add_ruleset'),
     path('report/<int:pk>/add_notes', views.update_report_notes, name='update_report_notes'),
     path('report/<int:pk>/pdf', views.ReportPDFView.as_view(), name='generate_pdf'),
+    path('report/<int:pk>/add_transaction', views.CreateTransaction.as_view(), name='add_transaction')
     #path('report/<int:pk>/import_transactions', views.add_transactions, name='add_transactions'),
 ]

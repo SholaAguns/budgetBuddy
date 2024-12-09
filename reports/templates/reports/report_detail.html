@@ -66,6 +66,7 @@
 <div class="container report_section" id="transactions_section" align="center" style="display: none;">
         <div style="padding-bottom: 10px;">
             {% if report.ruleset %}
+                <a href="{% url 'reports:add_transaction' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Transaction</a>
                 <a href="{% url 'reports:add_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Import Transactions</a>
                 <a href="{% url 'reports:clear_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Clear Transactions</a>
             {% else %}
@@ -193,20 +194,33 @@
                                 <th scope="col">Category </th>
                                 <th scope="col">Budget</th>
                                 <th scope="col">Actual</th>
+                                <th scope="col">Difference</th>
                             </tr>
                        </thead>
                        <tbody>
                                 {% for budget_category in report.budget.budgetcategory_set.all  %}
+                                    {% with diff=differences|get:budget_category.category.title %}
                                        <tr>
                                         <td>{{ budget_category.category }} </td>
                                         <td>{{ budget_category.limit }} </td>
-                                        <td>{{ total_by_category|default_if_none:"0"|get:budget_category.category.title }}</td>
+                                        <td>{{ total_by_category|default_if_none:"0"|get:budget_category.category.title|default:"0"|floatformat:2 }}</td>
+                                        {% if diff < 0 %}
+                                            <td class="expense_transaction">{{ diff|default:"0"|floatformat:2 }}</td>
+                                        {% else %}
+                                            <td class="earning_transaction">{{ diff|default:"0"|floatformat:2 }}</td>
+                                        {% endif %}
                                       </tr>
+                                    {% endwith %}
                                 {% endfor %}
                                     <tr class="table-dark">
                                         <td>Total </td>
-                                        <td>{{ budget_category_total }} </td>
-                                        <td>{{ total_expenses_by_budget }}</td>
+                                        <td>{{ budget_category_total|default:"0"|floatformat:2 }} </td>
+                                        <td>{{ total_expenses_by_budget|default:"0"|floatformat:2 }}</td>
+                                        {% if total_difference < 0 %}
+                                            <td class="expense_transaction">{{ total_difference|default:"0"|floatformat:2 }}</td>
+                                        {% else %}
+                                            <td class="earning_transaction">{{ total_difference|default:"0"|floatformat:2 }}</td>
+                                        {% endif %}
                                     </tr>
                        </tbody>
                   </table>

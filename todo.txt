@@ -1,0 +1,3 @@
+- Edit budget amounts
+- Budget Earnings vs Expenses
+- Add multiple transactions

@@ -70,7 +70,6 @@ class CreateRule(LoginRequiredMixin, CreateView):
         form.save()
         return super().form_valid(form)
 
-
     def get_success_url(self):
         ruleset = Ruleset.objects.get(id=self.kwargs['pk'])
         return reverse('budgets:single_ruleset', kwargs={'pk': ruleset.id})
