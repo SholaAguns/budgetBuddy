@@ -25,7 +25,7 @@ class BudgetCategoryForm(forms.ModelForm):
 
     class Meta:
         model = BudgetCategory
-        fields = ('category', 'limit',)
+        fields = ('category', 'limit', 'is_earning',)
 
 
 class RulesetForm(forms.ModelForm):

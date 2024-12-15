@@ -67,7 +67,7 @@ class ReportDetail(LoginRequiredMixin, DetailView):
         total_by_category = {}
 
         for budget_category in budget_categories:
-            total_amount = Transaction.objects.filter(report=report, category=budget_category.category) \
+            total_amount = Transaction.objects.filter(report=report, category=budget_category.category, is_earning=False) \
                                .aggregate(total_amount=Sum('amount'))['total_amount'] or Decimal('0.00')
             total_by_category[budget_category.category.title] = total_amount
             budget_category_total += budget_category.limit
@@ -122,7 +122,6 @@ class ReportDetail(LoginRequiredMixin, DetailView):
 
 class ReportList(LoginRequiredMixin, ListView):
     model = Report
-    login_url = '/login'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

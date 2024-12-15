@@ -6,25 +6,53 @@
         <h2 id="budgetname" >{{budget.name}}</h2>
 </div>
 <div class="container" align="center" >
-  <table class="table table-striped">
+    <table class="table table-striped">
       <thead class="table-dark">
         <tr>
-            <th>Category</th>
-            <th>Limit</th>
+            <th>Earning</th>
+            <th>Amount</th>
             <th></th>
         </tr>
       </thead>
       <tbody>
         {% for budget_category in budget.budgetcategory_set.all %}
+            {% if budget_category.is_earning %}
                <tr>
                 <td>{{ budget_category.category}} </td>
                 <td>{{ budget_category.limit}} </td>
                 <td><a href="{% url 'budgets:delete_budget_category' pk=budget_category.id %}"><i class="bi bi-trash3"></i></a> </td>
               </tr>
+            {% endif %}
         {% endfor %}
                 <tr class="table-dark">
                     <td>Total</td>
-                    <td>{{ total_limit }}</td>
+                    <td>{{ total_earnings }}</td>
+                    <td></td>
+                </tr>
+      </tbody>
+
+  </table><hr>
+  <table class="table table-striped">
+      <thead class="table-dark">
+        <tr>
+            <th>Expense</th>
+            <th>Amount</th>
+            <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for budget_category in budget.budgetcategory_set.all %}
+            {% if not budget_category.is_earning %}
+               <tr>
+                <td>{{ budget_category.category}} </td>
+                <td>{{ budget_category.limit}} </td>
+                <td><a href="{% url 'budgets:delete_budget_category' pk=budget_category.id %}"><i class="bi bi-trash3"></i></a> </td>
+              </tr>
+            {% endif %}
+        {% endfor %}
+                <tr class="table-dark">
+                    <td>Total</td>
+                    <td>{{ total_expenses }}</td>
                     <td></td>
                 </tr>
       </tbody>

@@ -37,6 +37,7 @@ class BudgetCategory(models.Model):
     budget = models.ForeignKey(Budget, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, default="")
     limit = models.DecimalField(null=False, max_digits=7, decimal_places=2)
+    is_earning = models.BooleanField(default=False, null=True)
 
     def __str__(self):
         return self.category

@@ -84,7 +84,8 @@ class BudgetDetail(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_limit'] = self.object.budgetcategory_set.aggregate(total=Sum('limit'))['total']
+        context['total_earnings'] = self.object.budgetcategory_set.filter(is_earning=True).aggregate(total=Sum('limit'))['total']
+        context['total_expenses'] = self.object.budgetcategory_set.filter(is_earning=False).aggregate(total=Sum('limit'))['total']
         return context
 
 

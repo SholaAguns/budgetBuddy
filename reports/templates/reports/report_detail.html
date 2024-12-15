@@ -200,6 +200,7 @@
                        <tbody>
                                 {% for budget_category in report.budget.budgetcategory_set.all  %}
                                     {% with diff=differences|get:budget_category.category.title %}
+                                      {%if not budget_category.is_earning %}
                                        <tr>
                                         <td>{{ budget_category.category }} </td>
                                         <td>{{ budget_category.limit }} </td>
@@ -210,6 +211,7 @@
                                             <td class="earning_transaction">{{ diff|default:"0"|floatformat:2 }}</td>
                                         {% endif %}
                                       </tr>
+                                      {% endif %}
                                     {% endwith %}
                                 {% endfor %}
                                     <tr class="table-dark">
