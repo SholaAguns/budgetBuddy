@@ -62,27 +62,48 @@ class ReportDetail(LoginRequiredMixin, DetailView):
         report = self.object
         # budget_categories = report.budget.budgetcategory_set.all()
         budget_categories = BudgetCategory.objects.filter(budget=report.budget)
-        budget_category_total = 0
+        budget_category_expenses_total = 0
         total_expenses_by_budget = 0
-        total_by_category = {}
+        budget_category_earnings_total = 0
+        total_earnings_by_budget = 0
+        total_expense_by_category = {}
+        total_earning_by_category = {}
 
         for budget_category in budget_categories:
-            total_amount = Transaction.objects.filter(report=report, category=budget_category.category, is_earning=False) \
-                               .aggregate(total_amount=Sum('amount'))['total_amount'] or Decimal('0.00')
-            total_by_category[budget_category.category.title] = total_amount
-            budget_category_total += budget_category.limit
-            total_expenses_by_budget += total_amount
+            if budget_category.is_earning:
+                total_earning_amount = Transaction.objects.filter(report=report, category=budget_category.category, is_expense=False) \
+                    .aggregate(total_amount=Sum('amount'))['total_amount'] or Decimal('0.00')
+                total_earning_by_category[budget_category.category.title] = total_earning_amount
+                budget_category_earnings_total += budget_category.limit
+                total_earnings_by_budget += total_earning_amount
 
-        differences = {}
+            else:
+                total_expense_amount = Transaction.objects.filter(report=report, category=budget_category.category, is_expense=True) \
+                    .aggregate(total_amount=Sum('amount'))['total_amount'] or Decimal('0.00')
+                total_expense_by_category[budget_category.category.title] = total_expense_amount
+                budget_category_expenses_total += budget_category.limit
+                total_expenses_by_budget += total_expense_amount
+
+
+        expense_differences = {}
+        earning_differences = {}
         for cat in budget_categories:
-            actual = total_by_category.get(cat.category.title, Decimal('0.00'))
-            differences[cat.category.title] = cat.limit - actual
+            actual_expenses = total_expense_by_category.get(cat.category.title, Decimal('0.00'))
+            expense_differences[cat.category.title] = cat.limit - actual_expenses
 
-        context['differences'] = differences
-        context['total_difference'] = budget_category_total - total_expenses_by_budget
-        context['total_by_category'] = total_by_category
+            actual_earnings = total_earning_by_category.get(cat.category.title, Decimal('0.00'))
+            earning_differences[cat.category.title] = actual_earnings - cat.limit
+
+        context['expense_differences'] = expense_differences
+        context['earning_differences'] = earning_differences
+        context['total_expenses_difference'] = budget_category_expenses_total - total_expenses_by_budget
+        context['total_earnings_difference'] = total_earnings_by_budget - budget_category_earnings_total
+        context['total_expense_by_category'] = total_expense_by_category
+        context['total_earning_by_category'] = total_earning_by_category
         context['total_expenses_by_budget'] = f'{total_expenses_by_budget:.2f}'
-        context['budget_category_total'] = budget_category_total
+        context['total_earnings_by_budget'] = f'{total_earnings_by_budget:.2f}'
+        context['budget_category_expenses_total'] = budget_category_expenses_total
+        context['budget_category_earnings_total'] = budget_category_earnings_total
 
         context['expenses'] = Transaction.objects.filter(report=report, is_expense=True) \
             .annotate(total_amount=Sum('amount')) \

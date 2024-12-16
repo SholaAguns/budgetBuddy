@@ -188,45 +188,84 @@
             </div>
         </div>
         <div class="container report_section" id="comparison_section" align="center" style="display: none;">
-                  <table class="table table-striped">
-                       <thead class="table-dark">
-                            <tr>
-                                <th scope="col">Category </th>
-                                <th scope="col">Budget</th>
-                                <th scope="col">Actual</th>
-                                <th scope="col">Difference</th>
+          <table class="table table-striped">
+               <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Earning </th>
+                        <th scope="col">Budget</th>
+                        <th scope="col">Actual</th>
+                        <th scope="col">Difference</th>
+                    </tr>
+               </thead>
+               <tbody>
+                        {% for budget_category in report.budget.budgetcategory_set.all  %}
+                            {% with diff=earning_differences|get:budget_category.category.title %}
+                              {% if budget_category.is_earning %}
+                               <tr>
+                                <td>{{ budget_category.category }} </td>
+                                <td>{{ budget_category.limit }} </td>
+                                <td>{{ total_earning_by_category|default_if_none:"0"|get:budget_category.category.title|default:"0"|floatformat:2 }}</td>
+                                {% if diff < 0 %}
+                                    <td class="expense_transaction">{{ diff|default:"0"|floatformat:2 }}</td>
+                                {% else %}
+                                    <td class="earning_transaction">{{ diff|default:"0"|floatformat:2 }}</td>
+                                {% endif %}
+                              </tr>
+                              {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+                            <tr class="table-dark">
+                                <td>Total Earnings</td>
+                                <td>{{ budget_category_earnings_total|default:"0"|floatformat:2 }} </td>
+                                <td>{{ total_earnings_by_budget|default:"0"|floatformat:2 }}</td>
+                                {% if total_earnings_difference < 0 %}
+                                    <td class="expense_transaction">{{ total_earnings_difference|default:"0"|floatformat:2 }}</td>
+                                {% else %}
+                                    <td class="earning_transaction">{{ total_earnings_difference|default:"0"|floatformat:2 }}</td>
+                                {% endif %}
                             </tr>
-                       </thead>
-                       <tbody>
-                                {% for budget_category in report.budget.budgetcategory_set.all  %}
-                                    {% with diff=differences|get:budget_category.category.title %}
-                                      {%if not budget_category.is_earning %}
-                                       <tr>
-                                        <td>{{ budget_category.category }} </td>
-                                        <td>{{ budget_category.limit }} </td>
-                                        <td>{{ total_by_category|default_if_none:"0"|get:budget_category.category.title|default:"0"|floatformat:2 }}</td>
-                                        {% if diff < 0 %}
-                                            <td class="expense_transaction">{{ diff|default:"0"|floatformat:2 }}</td>
-                                        {% else %}
-                                            <td class="earning_transaction">{{ diff|default:"0"|floatformat:2 }}</td>
-                                        {% endif %}
-                                      </tr>
-                                      {% endif %}
-                                    {% endwith %}
-                                {% endfor %}
-                                    <tr class="table-dark">
-                                        <td>Total </td>
-                                        <td>{{ budget_category_total|default:"0"|floatformat:2 }} </td>
-                                        <td>{{ total_expenses_by_budget|default:"0"|floatformat:2 }}</td>
-                                        {% if total_difference < 0 %}
-                                            <td class="expense_transaction">{{ total_difference|default:"0"|floatformat:2 }}</td>
-                                        {% else %}
-                                            <td class="earning_transaction">{{ total_difference|default:"0"|floatformat:2 }}</td>
-                                        {% endif %}
-                                    </tr>
-                       </tbody>
-                  </table>
-                  <hr>
+               </tbody>
+          </table>
+
+          <table class="table table-striped">
+               <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Expense </th>
+                        <th scope="col">Budget</th>
+                        <th scope="col">Actual</th>
+                        <th scope="col">Difference</th>
+                    </tr>
+               </thead>
+               <tbody>
+                        {% for budget_category in report.budget.budgetcategory_set.all  %}
+                            {% with diff=expense_differences|get:budget_category.category.title %}
+                              {% if not budget_category.is_earning %}
+                               <tr>
+                                <td>{{ budget_category.category }} </td>
+                                <td>{{ budget_category.limit }} </td>
+                                <td>{{ total_expense_by_category|default_if_none:"0"|get:budget_category.category.title|default:"0"|floatformat:2 }}</td>
+                                {% if diff < 0 %}
+                                    <td class="expense_transaction">{{ diff|default:"0"|floatformat:2 }}</td>
+                                {% else %}
+                                    <td class="earning_transaction">{{ diff|default:"0"|floatformat:2 }}</td>
+                                {% endif %}
+                              </tr>
+                              {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+                            <tr class="table-dark">
+                                <td>Total Expenses </td>
+                                <td>{{ budget_category_expenses_total|default:"0"|floatformat:2 }} </td>
+                                <td>{{ total_expenses_by_budget|default:"0"|floatformat:2 }}</td>
+                                {% if total_expenses_difference < 0 %}
+                                    <td class="expense_transaction">{{ total_expenses_difference|default:"0"|floatformat:2 }}</td>
+                                {% else %}
+                                    <td class="earning_transaction">{{ total_expenses_difference|default:"0"|floatformat:2 }}</td>
+                                {% endif %}
+                            </tr>
+               </tbody>
+          </table>
+          <hr>
         </div>
     {% endif %}
 {% endif %}
