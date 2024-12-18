@@ -24,4 +24,6 @@ urlpatterns = [
     path('delete_budget_category/<int:pk>', views.budgetcategory_remove, name='delete_budget_category'),
     path('budget/<int:pk>/duplicate', views.budget_duplicate, name='duplicate_budget'),
     path('ruleset/<int:pk>/duplicate', views.ruleset_duplicate, name='duplicate_ruleset'),
+    path('category/<int:pk>/update', views.CategoryUpdate.as_view(), name='update_category'),
+    path('budget_category/<int:pk>/update', views.BudgetCategoryUpdate.as_view(), name='update_budget_category'),
 ]

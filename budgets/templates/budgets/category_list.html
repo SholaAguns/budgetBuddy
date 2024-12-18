@@ -17,10 +17,12 @@
       <tbody>
         {% for category in object_list %}
               <tr>
-                <td class="text-center">{{category.title}}
+                <td class="text-center">
+                    {{category.title}}
                 </td>
-                {% if   category.title != "Other" %}
+                {% if not "Other" in category.title %}
                   <td class="text-center">
+                    <a href="{% url 'budgets:update_category' pk=category.id %}"><i class="bi bi-pencil"></i></a>
                     <a href="{% url 'budgets:delete_category' pk=category.id %}"><i class="bi bi-trash3"></i></a>
                   </td>
                 {% endif %}

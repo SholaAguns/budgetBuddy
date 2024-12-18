@@ -22,8 +22,9 @@
 
   <!--        Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <!--        jQuery -->
+  <!--        Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
  </head>
 <body class="base_body">
@@ -40,11 +41,32 @@
             <li class="nav-item">
             <a class="nav-link" href="{% url 'home' %}"> Home </a>
             </li>
-            <li class="nav-item">
-            <a class="nav-link" href="{% url 'reports:add_report' %}">Create Report</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Budget
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="{% url 'budgets:add_budget' %}">Create Budget</a></li>
+                <li><a class="dropdown-item" href="{% url 'budgets:budget_list' %}">My Budgets</a></li>
+              </ul>
             </li>
-            <li class="nav-item">
-            <a class="nav-link" href="{% url 'reports:report_list' %}">My Reports</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Ruleset
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="{% url 'budgets:add_ruleset' %}">Create Ruleset</a></li>
+                <li><a class="dropdown-item" href="{% url 'budgets:rulesets' %}">My Rulesets</a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Report
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="{% url 'reports:add_report' %}">Create Report</a></li>
+                <li><a class="dropdown-item" href="{% url 'reports:report_list' %}">My Reports</a></li>
+              </ul>
             </li>
             <li class="nav-item">
               <form action="{% url 'accounts:logout' %}" method="post">

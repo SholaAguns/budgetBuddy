@@ -6,13 +6,16 @@ import fitz  # PyMuPDF
 
 
 class TransactionService:
-    def set_category(rules, transaction_name):
-        other_category = Category.objects.get(title='Other')
+    def set_category(rules, transaction_name, is_expense):
+        other_expense_category = Category.objects.get(title='Other (Expense)')
+        other_earning_category = Category.objects.get(title='Other (Earning)')
         for rule in rules:
             if rule.keyword.lower() in transaction_name.lower():
                 return rule.category
-
-        return other_category
+        if is_expense:
+            return other_expense_category
+        else:
+            return other_earning_category
 
     def create_transactions_from_csv(self, report):
         rules = Rule.objects.filter(ruleset=report.ruleset)
@@ -25,7 +28,8 @@ class TransactionService:
                 name = row[1].strip()
                 amount_str = row[2].replace(',', '')  # Remove commas from amount string
                 amount = float(amount_str)
-                category = TransactionService.set_category(rules, name)
+                is_expense = amount < 0
+                category = TransactionService.set_category(rules, name, is_expense)
 
                 # Parse date from dd/mm/yyyy format to yyyy-mm-dd
                 try:
@@ -34,7 +38,7 @@ class TransactionService:
                     # Handle invalid date format if necessary
                     date = None
 
-                is_expense = amount < 0
+
 
                 if report.start_date <= date <= report.end_date:
                     Transaction.objects.create(

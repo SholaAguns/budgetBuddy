@@ -15,6 +15,10 @@ class CreateCategory(LoginRequiredMixin, CreateView):
     form_class = CategoryForm
     redirect_field_name = 'budgets/category_list.html'
 
+class CategoryUpdate(LoginRequiredMixin, UpdateView):
+    model = Category
+    form_class = CategoryForm
+    redirect_field_name = 'budgets/category_list.html'
 
 class CreateBudget(LoginRequiredMixin, CreateView):
     model = Budget
@@ -124,6 +128,15 @@ class RulesetUpdate(LoginRequiredMixin, UpdateView):
     form_class = RulesetForm
     redirect_field_name = 'budgets/ruleset_detail.html'
 
+class BudgetCategoryUpdate(LoginRequiredMixin, UpdateView):
+    login_url = '/login'
+    model = BudgetCategory
+    form_class = BudgetCategoryForm
+    redirect_field_name = 'budgets/budget_detail.html'
+
+    def get_success_url(self):
+        budgetcategory = BudgetCategory.objects.get(id=self.kwargs['pk'])
+        return reverse('budgets:single_budget', kwargs={'pk': budgetcategory.budget.id})
 
 class DeleteBudget(LoginRequiredMixin, DeleteView):
     model = Budget

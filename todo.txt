@@ -1,3 +1,4 @@
-- Edit budget amounts
 - Edit/delete transaction
 - Add multiple transactions
+- Fix naming inconsistencies
+-Logging

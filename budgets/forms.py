@@ -12,6 +12,12 @@ class CategoryForm(forms.ModelForm):
         model = Category
         fields = ('title', )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:  # Check if the instance exists (update mode)
+            self.fields['title'].widget.attrs['placeholder'] = self.instance.title
+
+
 
 class BudgetForm(forms.ModelForm):
 
