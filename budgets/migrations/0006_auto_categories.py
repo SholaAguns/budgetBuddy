@@ -1,5 +1,3 @@
-# Example migration file
-
 from django.db import migrations
 
 
@@ -12,18 +10,19 @@ def populate_categories(apps, schema_editor):
         'Transportation and Parking',
         'Shopping',
         'Car',
+        'Childcare',
         'Insurance',
         'Charity',
         'Salary',
         'Sports and Exercise',
         'Rent',
-        'Other',
+        'Other (Expense)',
+        'Other (Earning)',
         'Takeout',
         'Savings and Investments',
         'Subscriptions',
         'Revolut',
-
-        # Add more initial categories as needed
+        'Amazon Flex'
     ]
     for category_name in initial_categories:
         Category.objects.create(title=category_name)

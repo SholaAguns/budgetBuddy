@@ -1,4 +1,6 @@
 - Edit/delete transaction
 - Add multiple transactions
 - Fix naming inconsistencies
--Logging
+- Logging
+- Remove comments
+- Update wiki
