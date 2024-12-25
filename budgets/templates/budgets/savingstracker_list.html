@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container budget_heading" >
+        <h2>My Savings Trackers</h2>
+</div>
+<div id="budgetlist" class="container" align="center">
+    {% for tracker in savings_tracker_list %}
+    <h3 class="budget_name">
+        <a href="{% url 'budgets:savings_tracker_detail' pk=tracker.id %}">{{ tracker.name }}</a>
+    </h3>
+    <hr>
+	{% endfor %}
+
+    {% if user.is_authenticated %}
+        <div id="budget_controls" class="container" align="center">
+        <br><br>
+        <a href="{% url 'budgets:add_savings_tracker' %}" role="button" class="btn btn-outline-secondary w-80">Create Tracker</a>
+        </div><br><br>
+    {% endif %}
+</div>
+{% endblock %}

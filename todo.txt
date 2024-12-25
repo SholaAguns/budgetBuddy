@@ -1,4 +1,7 @@
+- Savings tracker: Create or Detail (No list)
 - Edit/delete transaction
+- Make Trans sheet not required
+- Calendar
 - Add multiple transactions
 - Fix naming inconsistencies
 - Logging

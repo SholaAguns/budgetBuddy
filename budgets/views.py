@@ -1,13 +1,19 @@
+from random import randint
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, DetailView, CreateView, ListView, UpdateView, DeleteView
+from django.views.generic import DetailView, CreateView, ListView, UpdateView, DeleteView
 from .models import Category, BudgetCategory, Budget, Rule, Ruleset
-from .forms import CategoryForm, BudgetForm, BudgetCategoryForm, RuleForm, RulesetForm
+from .forms import CategoryForm, BudgetForm, BudgetCategoryForm, RuleForm, RulesetForm, SavingsTrackerForm, \
+    SavingsTrackerNameForm
 from django.urls import reverse
 from django.contrib import messages
+from budgets.models import SavingsTracker, ProjectedBalance
+
+from .services.savings_service import SavingsService
 
 
 class CreateCategory(LoginRequiredMixin, CreateView):
@@ -30,6 +36,33 @@ class CreateBudget(LoginRequiredMixin, CreateView):
         self.object.user = self.request.user
         self.object.save()
         return super().form_valid(form)
+
+
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
+
+class CreateSavingsTracker(LoginRequiredMixin, CreateView):
+    model = SavingsTracker
+    form_class = SavingsTrackerForm
+    redirect_field_name = 'budgets/savingstracker_detail.html'
+
+    def form_valid(self, form):
+        user = self.request.user
+        if SavingsTracker.objects.filter(user=user).exists():
+            tracker = SavingsTracker.objects.get(user=user)
+            return HttpResponseRedirect(reverse('budgets:savings_tracker_detail', kwargs={'pk': tracker.id}))
+
+        # Create a new SavingsTracker if none exists
+        self.object = form.save(commit=False)
+        self.object.user = user
+        random_number = randint(10000, 99999)
+        self.object.name = f'{user} Savings Tracker {random_number}'
+        self.object.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('budgets:savings_tracker_detail', kwargs={'pk': self.object.id})
 
 
 class CreateRuleset(LoginRequiredMixin, CreateView):
@@ -92,6 +125,13 @@ class BudgetDetail(LoginRequiredMixin, DetailView):
         context['total_expenses'] = self.object.budgetcategory_set.filter(is_earning=False).aggregate(total=Sum('limit'))['total']
         return context
 
+class SavingsTrackerDetail(LoginRequiredMixin, DetailView):
+    model = SavingsTracker
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['projected_balances'] = ProjectedBalance.objects.filter(savings_tracker=self.object)
+        return context
 
 class BudgetList(LoginRequiredMixin, ListView):
     model = Budget
@@ -101,6 +141,13 @@ class BudgetList(LoginRequiredMixin, ListView):
         context['budget_list'] = Budget.objects.filter(user=self.request.user)
         return context
 
+class SavingsTrackerList(LoginRequiredMixin, ListView):
+    model = SavingsTracker
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['savings_tracker_list'] = SavingsTracker.objects.filter(user=self.request.user)
+        return context
 
 class CategoryList(LoginRequiredMixin, ListView):
     model = Category
@@ -114,6 +161,29 @@ class RulesetList(LoginRequiredMixin, ListView):
         context['ruleset_list'] = Ruleset.objects.filter(user=self.request.user)
         return context
 
+class UpdateSavingsTracker(LoginRequiredMixin, UpdateView):
+    model = SavingsTracker
+    form_class = SavingsTrackerForm
+    redirect_field_name = 'budgets/savingstracker_detail.html'
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        savings_service =  SavingsService()
+        savings_service.update_savings(self.object)
+        self.object.save()
+        return super().form_valid(form)
+
+class UpdateSavingsTrackerName(LoginRequiredMixin, UpdateView):
+    model = SavingsTracker
+    form_class = SavingsTrackerNameForm
+    redirect_field_name = 'budgets/savingstracker_detail.html'
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        savings_service =  SavingsService()
+        savings_service.update_savings(self.object)
+        self.object.save()
+        return super().form_valid(form)
 
 class BudgetUpdate(LoginRequiredMixin, UpdateView):
     login_url = '/login'
@@ -152,6 +222,19 @@ class DeleteBudget(LoginRequiredMixin, DeleteView):
         messages.success(self.request, "Budget Deleted")
         return super().delete(*args, **kwargs)
 
+class DeleteSavingsTracker(LoginRequiredMixin, DeleteView):
+    model = SavingsTracker
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user_id=self.request.user.id)
+
+    def get_success_url(self):
+        return reverse('budgets:savings_tracker_list')
+
+    def delete(self, *args, **kwargs):
+        messages.success(self.request, "Savings Tracker Deleted")
+        return super().delete(*args, **kwargs)
 
 class DeleteRuleset(LoginRequiredMixin, DeleteView):
     model = Ruleset
@@ -186,6 +269,13 @@ def rule_remove(request, pk):
 def budgetcategory_remove(request, pk):
     budgetcategory = get_object_or_404(BudgetCategory, pk=pk)
     budgetcategory.delete()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+@login_required()
+def update_savings(request, pk):
+    savings_tracker = get_object_or_404(SavingsTracker, pk=pk)
+    savings_service = SavingsService()
+    savings_service.update_savings(savings_tracker)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 

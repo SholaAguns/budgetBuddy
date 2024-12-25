@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="jumbotron budget_heading" >
+        <h2 id="rulesetname">{{savingstracker.name}}</h2>
+        <h3>Current balance: £{{savingstracker.current_balance}}</h3>
+        <h3>Projected balance: {{savingstracker.final_projected_date}} - £{{savingstracker.final_projected_balance}}</h3>
+</div>
+{% if user.is_authenticated and savingstracker.user == user %}
+        <div id="budget_controls" class="container" align="center">
+        <br><br>
+        <a href="{% url 'budgets:update_savings' pk=savingstracker.id %}" role="button" class="btn btn-outline-secondary  w-80">Update Savings</a>
+        <a href="{% url 'budgets:delete_savings_tracker' pk=savingstracker.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Tracker</a>
+        </div><br><br>
+    {% endif %}
+<br><br>
+<div class="container" align="center">
+  <table class="table table-striped">
+       <thead class="table-dark">
+            <tr>
+                <th scope="col">Date </th>
+                <th scope="col">Balance</th>
+            </tr>
+       </thead>
+       <tbody>
+        {% for projected_balance in projected_balances %}
+              <tr>
+                <td>{{ projected_balance.projected_date}} </td>
+                <td>{{ projected_balance.balance}} </td>
+              </tr>
+        {% endfor %}
+         </tbody>
+  </table>
+</div>
+{% endblock %}

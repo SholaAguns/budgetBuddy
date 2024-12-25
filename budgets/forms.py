@@ -1,5 +1,6 @@
 from django import forms
 from .models import Category, Budget, BudgetCategory, Ruleset, Rule
+from budgets.models import SavingsTracker
 
 
 class DateInput(forms.DateInput):
@@ -46,3 +47,15 @@ class RuleForm(forms.ModelForm):
     class Meta:
         model = Rule
         fields = ('keyword', 'category',)
+
+class SavingsTrackerForm(forms.ModelForm):
+
+    class Meta:
+        model = SavingsTracker
+        fields = ('current_balance',)
+
+class SavingsTrackerNameForm(forms.ModelForm):
+
+    class Meta:
+        model = SavingsTracker
+        fields = ('name',)
