@@ -17,7 +17,7 @@ This project is a Django application for analyzing financial transactions from y
 
 ### Prerequisites
 
-- Python 3.11.5 (https://www.python.org/downloads/)
+- Python 3.10.11 (https://www.python.org/downloads/)
 
 ### Steps
 
@@ -70,3 +70,11 @@ This project is a Django application for analyzing financial transactions from y
     - Click on transactions section and click Import transactions
     - Transactions data will be populated
     - Any updates to budget, ruleset or transaction sheet will require transactions are cleared and re-imported.
+
+## Troubleshooting
+ 1. ImportError: cannot import name 'urlquote' from 'django.utils.http'
+    - Open .venv\lib\site-packages\easy_pdf\rendering.py
+    - Replace "from django.utils.http import urlquote" with "from urllib.parse import quote as urlquote"
+3. ModuleNotFoundError: No module named 'django.utils.six'
+   - Open .venv\lib\site-packages\easy_pdf\rendering.py
+   - Replace "from django.utils.six import BytesIO" with "from six import BytesIO"
