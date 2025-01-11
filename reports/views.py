@@ -172,6 +172,17 @@ class DeleteReport(LoginRequiredMixin, DeleteView):
         return super().delete(*args, **kwargs)
 
 
+class TransactionUpdate(LoginRequiredMixin, UpdateView):
+    login_url = '/login'
+    model = Transaction
+    form_class = TransactionForm
+    redirect_field_name = 'reports/report_detail.html'
+
+    def get_success_url(self):
+        return reverse('reports:single_report', kwargs={'pk': self.object.report.id})
+
+
+
 @login_required()
 def add_transactions(request, pk):
     report = get_object_or_404(Report, pk=pk)
@@ -222,6 +233,12 @@ def delete_transactions(request, pk):
     report.save()
     return redirect('reports:single_report', pk=report.id)
 
+@login_required()
+def delete_transaction(request, pk):
+    transaction = get_object_or_404(Transaction, pk=pk)
+    report =  transaction.report
+    transaction.delete()
+    return redirect('reports:single_report', pk=report.id)
 
 @login_required()
 def analyse_report(request, pk):

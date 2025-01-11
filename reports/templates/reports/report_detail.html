@@ -10,6 +10,9 @@
     #submit_notes_btn{
     margin-top: 1.5em;
 }
+    .remove_icon{
+    color: red;
+    }
 </style>
 <div class="container report_heading" >
         <h2>{{report.name}}</h2>
@@ -81,6 +84,7 @@
                         <th scope="col">Name</th>
                         <th scope="col">Category</th>
                         <th scope="col">Amount</th>
+                        <th scope="col"></th>
                     </tr>
                </thead>
                <tbody>
@@ -94,6 +98,10 @@
                                 {% else %}
                                    <td class="earning_transaction">{{ transaction.amount}} </td>
                                 {% endif %}
+                               <td>
+                                   <a href="{% url 'reports:edit_transaction' pk=transaction.id %}"><i class="bi bi-pencil-square"></i></a>
+                                   <a href="{% url 'reports:delete_transaction' pk=transaction.id %}"><i class="bi bi-x-square-fill remove_icon"></i></a>
+                               </td>
                               </tr>
                         {% endfor %}
                </tbody>
