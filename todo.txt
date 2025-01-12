@@ -1,5 +1,7 @@
 - Savings tracker: Create or Detail (No list)
+- Filter by category
 - Make Trans sheet not required
+- Page titles
 - Calendar
 - Add multiple transactions
 - Fix naming inconsistencies
