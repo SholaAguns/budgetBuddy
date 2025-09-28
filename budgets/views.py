@@ -2,13 +2,14 @@ from random import randint
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
+import json
 from django.views.generic import DetailView, CreateView, ListView, UpdateView, DeleteView
 from .models import Category, BudgetCategory, Budget, Rule, Ruleset
 from .forms import CategoryForm, BudgetForm, BudgetCategoryForm, RuleForm, RulesetForm, SavingsTrackerForm, \
-    SavingsTrackerNameForm
+    SavingsTrackerNameForm, QuickSavingsUpdateForm
 from django.urls import reverse
 from django.contrib import messages
 from budgets.models import SavingsTracker, ProjectedBalance
@@ -204,6 +205,16 @@ class BudgetCategoryUpdate(LoginRequiredMixin, UpdateView):
     form_class = BudgetCategoryForm
     redirect_field_name = 'budgets/budget_detail.html'
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # Check if this is a savings category and trigger update
+        if hasattr(self.object.category, 'title') and 'Savings' in self.object.category.title:
+            savings_service = SavingsService()
+            savings_service.trigger_all_users_update()
+
+        return response
+
     def get_success_url(self):
         budgetcategory = BudgetCategory.objects.get(id=self.kwargs['pk'])
         return reverse('budgets:single_budget', kwargs={'pk': budgetcategory.budget.id})
@@ -277,6 +288,64 @@ def update_savings(request, pk):
     savings_service = SavingsService()
     savings_service.update_savings(savings_tracker)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required()
+def quick_update_savings(request, pk):
+    savings_tracker = get_object_or_404(SavingsTracker, pk=pk, user=request.user)
+
+    if request.method == 'POST':
+        form = QuickSavingsUpdateForm(request.POST, instance=savings_tracker)
+        if form.is_valid():
+            form.save()
+
+            # Automatically trigger savings calculation update
+            savings_service = SavingsService()
+            savings_service.update_savings(savings_tracker)
+
+            messages.success(request, f"Current balance updated to ${savings_tracker.current_balance}")
+            return redirect('budgets:savings_tracker_detail', pk=savings_tracker.id)
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = QuickSavingsUpdateForm(instance=savings_tracker)
+
+    return render(request, 'budgets/quick_savings_update.html', {
+        'form': form,
+        'savings_tracker': savings_tracker
+    })
+
+
+@login_required()
+def ajax_update_balance(request, pk):
+    if request.method == 'POST':
+        try:
+            savings_tracker = get_object_or_404(SavingsTracker, pk=pk, user=request.user)
+            data = json.loads(request.body)
+            new_balance = float(data.get('current_balance', 0))
+
+            if new_balance < 0:
+                return JsonResponse({'success': False, 'error': 'Balance cannot be negative'})
+
+            # Update balance
+            savings_tracker.current_balance = new_balance
+            savings_tracker.save()
+
+            # Automatically trigger savings calculation update
+            savings_service = SavingsService()
+            savings_service.update_savings(savings_tracker)
+
+            return JsonResponse({
+                'success': True,
+                'new_balance': float(savings_tracker.current_balance)
+            })
+
+        except ValueError:
+            return JsonResponse({'success': False, 'error': 'Invalid balance amount'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
 @login_required()

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Update Current Balance</h4>
+                    <small class="text-muted">{{ savings_tracker.name }}</small>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.current_balance.id_for_label }}" class="form-label">
+                                Current Balance ($)
+                            </label>
+                            {{ form.current_balance }}
+                            {% if form.current_balance.errors %}
+                                <div class="text-danger">
+                                    {{ form.current_balance.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Current balance: ${{ savings_tracker.current_balance }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Update Balance</button>
+                            <a href="{% url 'budgets:savings_tracker_detail' pk=savings_tracker.id %}"
+                               class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="bi bi-info-circle"></i>
+                        Updating your balance will automatically recalculate your savings projections.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -32,5 +32,7 @@ urlpatterns = [
     path('ruleset/<int:pk>/duplicate', views.ruleset_duplicate, name='duplicate_ruleset'),
     path('category/<int:pk>/update', views.CategoryUpdate.as_view(), name='update_category'),
     path('budget_category/<int:pk>/update', views.BudgetCategoryUpdate.as_view(), name='update_budget_category'),
-    path('savings_tracker/<int:pk>/update_savings', views.update_savings, name='update_savings')
+    path('savings_tracker/<int:pk>/update_savings', views.update_savings, name='update_savings'),
+    path('savings_tracker/<int:pk>/quick_update', views.quick_update_savings, name='quick_update_savings'),
+    path('savings_tracker/<int:pk>/ajax_update', views.ajax_update_balance, name='ajax_update_balance')
 ]

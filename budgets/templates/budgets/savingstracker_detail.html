@@ -4,14 +4,35 @@
 {% block content %}
 <div class="jumbotron budget_heading" >
         <h2 id="rulesetname">{{savingstracker.name}}</h2>
-        <h3>Current balance: £{{savingstracker.current_balance}}</h3>
-        <h3>Projected balance: {{savingstracker.final_projected_date}} - £{{savingstracker.final_projected_balance}}</h3>
+        <div class="d-flex align-items-center justify-content-center mb-3">
+            <h3 class="me-3">Current balance: $<span id="current-balance">{{savingstracker.current_balance}}</span></h3>
+            <button id="inline-edit-btn" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </button>
+        </div>
+        <div id="inline-edit-form" style="display: none;" class="mb-3">
+            <div class="input-group justify-content-center" style="max-width: 300px; margin: 0 auto;">
+                <span class="input-group-text">$</span>
+                <input type="number" id="new-balance" class="form-control" step="0.01"
+                       value="{{savingstracker.current_balance}}" placeholder="Enter new balance">
+                <button id="save-balance-btn" class="btn btn-success">Save</button>
+                <button id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+        <h3>Projected balance: {{savingstracker.final_projected_date}} - ${{savingstracker.final_projected_balance}}</h3>
 </div>
 {% if user.is_authenticated and savingstracker.user == user %}
         <div id="budget_controls" class="container" align="center">
         <br><br>
-        <a href="{% url 'budgets:update_savings' pk=savingstracker.id %}" role="button" class="btn btn-outline-secondary  w-80">Update Savings</a>
-        <a href="{% url 'budgets:delete_savings_tracker' pk=savingstracker.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Tracker</a>
+        <a href="{% url 'budgets:quick_update_savings' pk=savingstracker.id %}" role="button" class="btn btn-primary w-80">
+            <i class="bi bi-pencil-square"></i> Update Current Balance
+        </a>
+        <a href="{% url 'budgets:update_savings' pk=savingstracker.id %}" role="button" class="btn btn-outline-secondary w-80">
+            <i class="bi bi-arrow-clockwise"></i> Recalculate Projections
+        </a>
+        <a href="{% url 'budgets:delete_savings_tracker' pk=savingstracker.id %}" role="button" class="btn btn-outline-danger w-80">
+            <i class="bi bi-trash"></i> Delete Tracker
+        </a>
         </div><br><br>
     {% endif %}
 <br><br>
@@ -33,4 +54,85 @@
          </tbody>
   </table>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inlineEditBtn = document.getElementById('inline-edit-btn');
+    const inlineEditForm = document.getElementById('inline-edit-form');
+    const saveBalanceBtn = document.getElementById('save-balance-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const newBalanceInput = document.getElementById('new-balance');
+    const currentBalanceSpan = document.getElementById('current-balance');
+
+    inlineEditBtn.addEventListener('click', function() {
+        inlineEditForm.style.display = 'block';
+        inlineEditBtn.style.display = 'none';
+        newBalanceInput.focus();
+        newBalanceInput.select();
+    });
+
+    cancelEditBtn.addEventListener('click', function() {
+        inlineEditForm.style.display = 'none';
+        inlineEditBtn.style.display = 'inline-block';
+        newBalanceInput.value = currentBalanceSpan.textContent;
+    });
+
+    saveBalanceBtn.addEventListener('click', function() {
+        const newBalance = parseFloat(newBalanceInput.value);
+
+        if (isNaN(newBalance) || newBalance < 0) {
+            alert('Please enter a valid positive number.');
+            return;
+        }
+
+        // Send AJAX request to update balance
+        fetch(`{% url 'budgets:ajax_update_balance' pk=savingstracker.id %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                'current_balance': newBalance
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentBalanceSpan.textContent = newBalance.toFixed(2);
+                inlineEditForm.style.display = 'none';
+                inlineEditBtn.style.display = 'inline-block';
+
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    Balance updated successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.jumbotron').after(alertDiv);
+
+                // Refresh page after 2 seconds to show updated projections
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                alert('Error updating balance: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating balance. Please try again.');
+        });
+    });
+
+    // Allow Enter key to save
+    newBalanceInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            saveBalanceBtn.click();
+        }
+    });
+});
+</script>
+
 {% endblock %}

@@ -59,3 +59,18 @@ class SavingsTrackerNameForm(forms.ModelForm):
     class Meta:
         model = SavingsTracker
         fields = ('name',)
+
+class QuickSavingsUpdateForm(forms.ModelForm):
+    current_balance = forms.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter current balance',
+            'step': '0.01'
+        })
+    )
+
+    class Meta:
+        model = SavingsTracker
+        fields = ('current_balance',)

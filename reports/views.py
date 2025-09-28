@@ -210,6 +210,17 @@ def add_budget(request, pk):
             budget = form.cleaned_data['budget']
             report.budget = budget
             report.save()
+
+            # Update savings tracker if user has one
+            try:
+                from budgets.models import SavingsTracker
+                from budgets.services.savings_service import SavingsService
+                savings_tracker = SavingsTracker.objects.get(user=request.user)
+                savings_service = SavingsService()
+                savings_service.update_savings(savings_tracker)
+            except SavingsTracker.DoesNotExist:
+                pass  # User doesn't have a savings tracker
+
         return redirect('reports:single_report', pk=report.id)
     else:
         form = AddBudgetForm(request.user)

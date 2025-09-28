@@ -7,10 +7,34 @@
 </div>
 <div id="budgetlist" class="container" align="center">
     {% for tracker in savings_tracker_list %}
-    <h3 class="budget_name">
-        <a href="{% url 'budgets:savings_tracker_detail' pk=tracker.id %}">{{ tracker.name }}</a>
-    </h3>
-    <hr>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">
+                <a href="{% url 'budgets:savings_tracker_detail' pk=tracker.id %}" class="text-decoration-none">
+                    {{ tracker.name }}
+                </a>
+            </h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="card-text">
+                        <strong>Current Balance:</strong> ${{ tracker.current_balance }}<br>
+                        <strong>Projected Balance:</strong> ${{ tracker.final_projected_balance }}
+                        {% if tracker.final_projected_date %}({{ tracker.final_projected_date }}){% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="{% url 'budgets:quick_update_savings' pk=tracker.id %}"
+                       class="btn btn-primary btn-sm">
+                        <i class="bi bi-pencil-square"></i> Quick Update
+                    </a>
+                    <a href="{% url 'budgets:savings_tracker_detail' pk=tracker.id %}"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-eye"></i> View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 	{% endfor %}
 
     {% if user.is_authenticated %}
