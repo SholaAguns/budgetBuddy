@@ -21,6 +21,7 @@ urlpatterns = [
     path('report/<int:pk>/pdf', views.ReportPDFView.as_view(), name='generate_pdf'),
     path('report/<int:pk>/add_transaction', views.CreateTransaction.as_view(), name='add_transaction'),
     path('report/<int:pk>/edit_transaction', views.TransactionUpdate.as_view(), name='edit_transaction'),
-    path('report/<int:pk>/delete_transaction', views.delete_transaction, name='delete_transaction')
+    path('report/<int:pk>/delete_transaction', views.delete_transaction, name='delete_transaction'),
+    path('report/<int:pk>/toggle_archive', views.toggle_archive_report, name='toggle_archive')
     #path('report/<int:pk>/import_transactions', views.add_transactions, name='add_transactions'),
 ]

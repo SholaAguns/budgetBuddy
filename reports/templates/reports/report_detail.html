@@ -301,6 +301,11 @@
         <br><br>
         <a href="{% url 'reports:update_report' pk=report.id %}" role="button" class="btn btn-outline-secondary  w-80">Edit Report</a>
         <a href="{% url 'reports:generate_pdf' pk=report.id %}" role="button" class="btn btn-outline-secondary  w-80">Generate PDF</a>
+        {% if report.is_archived %}
+            <a href="{% url 'reports:toggle_archive' pk=report.id %}" role="button" class="btn btn-outline-info  w-80">Unarchive Report</a>
+        {% else %}
+            <a href="{% url 'reports:toggle_archive' pk=report.id %}" role="button" class="btn btn-outline-warning  w-80">Archive Report</a>
+        {% endif %}
         <a href="{% url 'reports:delete_report' pk=report.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Report</a>
 </div><br><br>
 

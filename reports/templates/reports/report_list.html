@@ -3,15 +3,39 @@
 
 {% block content %}
 <div class="container budget_heading" >
-        <h2>My Reports</h2>
+        {% if show_archived %}
+            <h2>Archived Reports</h2>
+        {% else %}
+            <h2>My Reports</h2>
+        {% endif %}
 </div>
+
 <div class="container" align="center">
-    {% for report in report_list %}
-    <h3>
-        <a href="{% url 'reports:single_report' pk=report.id %}">{{ report.name }}</a>
-    </h3>
-    <hr>
-	{% endfor %}
+    <div class="mb-3">
+        {% if show_archived %}
+            <a href="{% url 'reports:report_list' %}" class="btn btn-outline-primary">View Active Reports</a>
+        {% else %}
+            <a href="{% url 'reports:report_list' %}?archived=true" class="btn btn-outline-secondary">View Archived Reports</a>
+        {% endif %}
+    </div>
+
+    {% if report_list %}
+        {% for report in report_list %}
+        <h3>
+            <a href="{% url 'reports:single_report' pk=report.id %}">{{ report.name }}</a>
+            {% if report.is_archived %}
+                <span class="badge bg-secondary">Archived</span>
+            {% endif %}
+        </h3>
+        <hr>
+        {% endfor %}
+    {% else %}
+        {% if show_archived %}
+            <p class="text-muted">No archived reports found.</p>
+        {% else %}
+            <p class="text-muted">No active reports found.</p>
+        {% endif %}
+    {% endif %}
 
     {% if user.is_authenticated %}
         <div id="budget_controls" class="container" align="center">

@@ -20,6 +20,7 @@ class Report(models.Model):
     budget = models.ForeignKey(Budget, on_delete=models.DO_NOTHING, null=True)
     ruleset = models.ForeignKey(Ruleset, on_delete=models.DO_NOTHING, null=True)
     notes = models.TextField(blank=True, null=True)
+    is_archived = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_dt']

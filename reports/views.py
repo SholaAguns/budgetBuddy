@@ -146,7 +146,13 @@ class ReportList(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['report_list'] = Report.objects.filter(user=self.request.user)
+        show_archived = self.request.GET.get('archived', False)
+        if show_archived == 'true':
+            context['report_list'] = Report.objects.filter(user=self.request.user, is_archived=True)
+            context['show_archived'] = True
+        else:
+            context['report_list'] = Report.objects.filter(user=self.request.user, is_archived=False)
+            context['show_archived'] = False
         return context
 
 
@@ -322,3 +328,14 @@ def update_report_notes(request, pk):
         else:
             return JsonResponse({'success': False, 'errors': form.errors})
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+@login_required()
+def toggle_archive_report(request, pk):
+    report = get_object_or_404(Report, pk=pk, user=request.user)
+    report.is_archived = not report.is_archived
+    report.save()
+
+    action = "archived" if report.is_archived else "unarchived"
+    messages.success(request, f"Report {action} successfully")
+    return redirect('reports:single_report', pk=report.id)
