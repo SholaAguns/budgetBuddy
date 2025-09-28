@@ -5,3 +5,5 @@ media
 bkp
 
 *myruleset.py
+
+*.pyc

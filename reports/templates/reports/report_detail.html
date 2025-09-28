@@ -123,7 +123,7 @@
                 <h3>Total Expenses: ${{ expenses_total }}</h3><br><br>
                 <h5>Top categories</h5>
                 <div class="container report_section" id="expenses_chart_section" align="center">
-                     <canvas id="expensesPieChart" width="250" height="100"></canvas>
+                     <canvas id="expensesPieChart" style="display: none; box-sizing: border-box; height: 600px; width: 600px;"></canvas>
                 </div><br><br>
               <table class="table table-striped">
                    <thead class="table-dark">
@@ -162,8 +162,9 @@
                 <h3>Total Earnings: ${{ earnings_total }}</h3><br><br>
 
                 <h5>Top categories</h5>
-                <div class="container report_section" id="earnings_chart_section" align="center">
-                     <canvas id="earningsPieChart" width="250" height="100"></canvas>
+                <div class="container report_section" id="earnings_chart_section" align="center" 
+                    style="display: none; box-sizing: border-box; height: 600px; width: 600px;">
+                     <canvas id="earningsPieChart" width="150" height="50"></canvas>
                 </div><br><br>
               <table class="table table-striped">
                    <thead class="table-dark">

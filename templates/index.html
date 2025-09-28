@@ -11,12 +11,12 @@
        Welcome {{user.username}}
       </div>
     <ul class="list-group list-group-flush">
-      <li class="list-group-item"><a href="{% url 'budgets:savings_tracker_list' %}">My Savings</a></li>
       <li class="list-group-item"><a href="{% url 'budgets:categories' %}">Categories</a></li>
-      <li class="list-group-item"><a href="{% url 'budgets:budget_list' %}">Budgets</a></li>
-      <li class="list-group-item"><a href="{% url 'budgets:rulesets' %}">Rulesets</a></li>
-      <li class="list-group-item"><a href="{% url 'reports:report_list' %}">Reports</a></li>
       {% if user.is_authenticated %}
+      <li class="list-group-item"><a href="{% url 'budgets:savings_tracker_list' %}">My Savings</a></li>
+      <li class="list-group-item"><a href="{% url 'budgets:budget_list' %}">My Budgets</a></li>
+      <li class="list-group-item"><a href="{% url 'budgets:rulesets' %}">My Rulesets</a></li>
+      <li class="list-group-item"><a href="{% url 'reports:report_list' %}">My Reports</a></li>
       <li class="list-group-item"><a href="{% url 'accounts:confirm_delete_user' %}">Close account</a></li>
       {% endif %}
     </ul>
