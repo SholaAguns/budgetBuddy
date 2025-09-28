@@ -339,3 +339,59 @@ def toggle_archive_report(request, pk):
     action = "archived" if report.is_archived else "unarchived"
     messages.success(request, f"Report {action} successfully")
     return redirect('reports:single_report', pk=report.id)
+
+
+@login_required()
+def bulk_archive_reports(request):
+    if request.method == 'POST':
+        selected_reports = request.POST.getlist('selected_reports')
+        if selected_reports:
+            reports = Report.objects.filter(
+                id__in=selected_reports,
+                user=request.user,
+                is_archived=False
+            )
+            count = reports.count()
+            reports.update(is_archived=True)
+            messages.success(request, f"{count} report(s) archived successfully")
+        else:
+            messages.warning(request, "No reports selected")
+
+    return redirect('reports:report_list')
+
+
+@login_required()
+def bulk_unarchive_reports(request):
+    if request.method == 'POST':
+        selected_reports = request.POST.getlist('selected_reports')
+        if selected_reports:
+            reports = Report.objects.filter(
+                id__in=selected_reports,
+                user=request.user,
+                is_archived=True
+            )
+            count = reports.count()
+            reports.update(is_archived=False)
+            messages.success(request, f"{count} report(s) unarchived successfully")
+        else:
+            messages.warning(request, "No reports selected")
+
+    return redirect('reports:report_list')
+
+
+@login_required()
+def bulk_delete_reports(request):
+    if request.method == 'POST':
+        selected_reports = request.POST.getlist('selected_reports')
+        if selected_reports:
+            reports = Report.objects.filter(
+                id__in=selected_reports,
+                user=request.user
+            )
+            count = reports.count()
+            reports.delete()
+            messages.success(request, f"{count} report(s) deleted successfully")
+        else:
+            messages.warning(request, "No reports selected")
+
+    return redirect('reports:report_list')

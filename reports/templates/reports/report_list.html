@@ -20,15 +20,45 @@
     </div>
 
     {% if report_list %}
-        {% for report in report_list %}
-        <h3>
-            <a href="{% url 'reports:single_report' pk=report.id %}">{{ report.name }}</a>
-            {% if report.is_archived %}
-                <span class="badge bg-secondary">Archived</span>
-            {% endif %}
-        </h3>
-        <hr>
-        {% endfor %}
+        <!-- Bulk Actions -->
+        <div id="bulk-actions" class="mb-3" style="display: none;">
+            <div class="d-flex justify-content-center gap-2">
+                {% if show_archived %}
+                    <button id="bulk-unarchive-btn" class="btn btn-outline-info">Unarchive Selected</button>
+                {% else %}
+                    <button id="bulk-archive-btn" class="btn btn-outline-warning">Archive Selected</button>
+                {% endif %}
+                <button id="bulk-delete-btn" class="btn btn-outline-danger">Delete Selected</button>
+                <button id="cancel-selection-btn" class="btn btn-outline-secondary">Cancel</button>
+            </div>
+            <small class="text-muted">
+                <span id="selected-count">0</span> report(s) selected
+            </small>
+        </div>
+
+        <!-- Select All -->
+        <div class="mb-3">
+            <label class="form-check-label">
+                <input type="checkbox" id="select-all" class="form-check-input"> Select All
+            </label>
+        </div>
+
+        <!-- Report List -->
+        <form id="bulk-form" method="post">
+            {% csrf_token %}
+            {% for report in report_list %}
+            <div class="report-item d-flex align-items-center justify-content-center mb-2">
+                <input type="checkbox" name="selected_reports" value="{{ report.id }}" class="form-check-input me-3 report-checkbox">
+                <h3 class="mb-0">
+                    <a href="{% url 'reports:single_report' pk=report.id %}">{{ report.name }}</a>
+                    {% if report.is_archived %}
+                        <span class="badge bg-secondary">Archived</span>
+                    {% endif %}
+                </h3>
+            </div>
+            <hr>
+            {% endfor %}
+        </form>
     {% else %}
         {% if show_archived %}
             <p class="text-muted">No archived reports found.</p>
@@ -44,4 +74,133 @@
         </div><br><br>
     {% endif %}
 </div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                Are you sure you want to proceed?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const reportCheckboxes = document.querySelectorAll('.report-checkbox');
+    const bulkActions = document.getElementById('bulk-actions');
+    const selectedCountSpan = document.getElementById('selected-count');
+    const bulkForm = document.getElementById('bulk-form');
+    const cancelSelectionBtn = document.getElementById('cancel-selection-btn');
+    const bulkArchiveBtn = document.getElementById('bulk-archive-btn');
+    const bulkUnarchiveBtn = document.getElementById('bulk-unarchive-btn');
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+    function updateBulkActions() {
+        const selectedCheckboxes = document.querySelectorAll('.report-checkbox:checked');
+        const count = selectedCheckboxes.length;
+
+        selectedCountSpan.textContent = count;
+
+        if (count > 0) {
+            bulkActions.style.display = 'block';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+
+        // Update select all checkbox state
+        if (count === reportCheckboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (count > 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+    }
+
+    // Select all functionality
+    selectAllCheckbox.addEventListener('change', function() {
+        const isChecked = this.checked;
+        reportCheckboxes.forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+        updateBulkActions();
+    });
+
+    // Individual checkbox functionality
+    reportCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActions);
+    });
+
+    // Cancel selection
+    cancelSelectionBtn.addEventListener('click', function() {
+        reportCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+        updateBulkActions();
+    });
+
+    // Bulk actions
+    function performBulkAction(action, needsConfirmation = false) {
+        const selectedReports = Array.from(document.querySelectorAll('.report-checkbox:checked'))
+            .map(cb => cb.value);
+
+        if (selectedReports.length === 0) {
+            alert('Please select at least one report.');
+            return;
+        }
+
+        function executeAction() {
+            bulkForm.action = `/reports/bulk_${action}/`;
+            bulkForm.submit();
+        }
+
+        if (needsConfirmation) {
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            const confirmModalBody = document.getElementById('confirmModalBody');
+            const confirmActionBtn = document.getElementById('confirmAction');
+
+            if (action === 'delete') {
+                confirmModalBody.textContent = `Are you sure you want to delete ${selectedReports.length} report(s)? This action cannot be undone.`;
+                confirmActionBtn.className = 'btn btn-danger';
+                confirmActionBtn.textContent = 'Delete';
+            }
+
+            confirmActionBtn.onclick = function() {
+                modal.hide();
+                executeAction();
+            };
+
+            modal.show();
+        } else {
+            executeAction();
+        }
+    }
+
+    if (bulkArchiveBtn) {
+        bulkArchiveBtn.addEventListener('click', () => performBulkAction('archive'));
+    }
+
+    if (bulkUnarchiveBtn) {
+        bulkUnarchiveBtn.addEventListener('click', () => performBulkAction('unarchive'));
+    }
+
+    bulkDeleteBtn.addEventListener('click', () => performBulkAction('delete', true));
+});
+</script>
 {% endblock %}

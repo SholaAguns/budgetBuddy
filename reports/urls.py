@@ -22,6 +22,9 @@ urlpatterns = [
     path('report/<int:pk>/add_transaction', views.CreateTransaction.as_view(), name='add_transaction'),
     path('report/<int:pk>/edit_transaction', views.TransactionUpdate.as_view(), name='edit_transaction'),
     path('report/<int:pk>/delete_transaction', views.delete_transaction, name='delete_transaction'),
-    path('report/<int:pk>/toggle_archive', views.toggle_archive_report, name='toggle_archive')
+    path('report/<int:pk>/toggle_archive', views.toggle_archive_report, name='toggle_archive'),
+    path('bulk_archive/', views.bulk_archive_reports, name='bulk_archive'),
+    path('bulk_unarchive/', views.bulk_unarchive_reports, name='bulk_unarchive'),
+    path('bulk_delete/', views.bulk_delete_reports, name='bulk_delete')
     #path('report/<int:pk>/import_transactions', views.add_transactions, name='add_transactions'),
 ]
