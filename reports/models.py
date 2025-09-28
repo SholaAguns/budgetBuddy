@@ -10,7 +10,7 @@ User = get_user_model()
 
 class Report(models.Model):
     name = models.CharField(default="", max_length=50, unique=True)
-    transaction_sheet = models.FileField(upload_to='sheets', blank=False,
+    transaction_sheet = models.FileField(upload_to='sheets', blank=True, null=True,
                                          validators=[FileExtensionValidator(['csv',]
                                                                             )])
     user = models.ForeignKey(User, related_name='report', on_delete=models.CASCADE)

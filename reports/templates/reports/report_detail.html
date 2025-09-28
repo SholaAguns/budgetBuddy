@@ -70,7 +70,11 @@
         <div style="padding-bottom: 10px;">
             {% if report.ruleset %}
                 <a href="{% url 'reports:add_transaction' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Add Transaction</a>
-                <a href="{% url 'reports:add_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Import from Transactions Sheet</a>
+                {% if report.transaction_sheet %}
+                    <a href="{% url 'reports:add_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Import from Transactions Sheet</a>
+                {% else %}
+                    <span class="text-muted">No transaction sheet uploaded</span>
+                {% endif %}
                 <a href="{% url 'reports:clear_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Clear Transactions</a>
             {% else %}
                 <span class="text-danger">No transactions imported. Add ruleset to proceed.</span>

@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.db.models import Sum
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -192,6 +193,10 @@ class TransactionUpdate(LoginRequiredMixin, UpdateView):
 @login_required()
 def add_transactions(request, pk):
     report = get_object_or_404(Report, pk=pk)
+    if not report.transaction_sheet:
+        messages.error(request, "No transaction sheet uploaded for this report.")
+        return redirect('reports:single_report', pk=report.id)
+
     transaction_service = TransactionService()
     if report.transaction_sheet.name.endswith('.pdf'):
         transaction_service.create_transactions_from_pdf(report)

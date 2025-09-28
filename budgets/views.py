@@ -127,8 +127,24 @@ class BudgetDetail(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_earnings'] = self.object.budgetcategory_set.filter(is_earning=True).aggregate(total=Sum('limit'))['total']
-        context['total_expenses'] = self.object.budgetcategory_set.filter(is_earning=False).aggregate(total=Sum('limit'))['total']
+        total_earnings = self.object.budgetcategory_set.filter(is_earning=True).aggregate(total=Sum('limit'))['total'] or 0
+        total_expenses = self.object.budgetcategory_set.filter(is_earning=False).aggregate(total=Sum('limit'))['total'] or 0
+
+        context['total_earnings'] = total_earnings
+        context['total_expenses'] = total_expenses
+        budget_balance = total_earnings - total_expenses
+        context['budget_balance'] = budget_balance
+        context['budget_balance_abs'] = abs(budget_balance)
+
+        # Calculate percentages
+        total_budget = total_earnings + total_expenses
+        if total_budget > 0:
+            context['earnings_percentage'] = (total_earnings / total_budget) * 100
+            context['expenses_percentage'] = (total_expenses / total_budget) * 100
+        else:
+            context['earnings_percentage'] = 0
+            context['expenses_percentage'] = 0
+
         return context
 
 class SavingsTrackerDetail(LoginRequiredMixin, DetailView):

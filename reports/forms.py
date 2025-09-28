@@ -15,6 +15,11 @@ class ReportForm(forms.ModelForm):
         fields = ('name', 'start_date', 'end_date', 'transaction_sheet')
         widgets = {'start_date':  DateInput(), 'end_date':  DateInput()}
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['transaction_sheet'].required = False
+        self.fields['transaction_sheet'].help_text = "Optional: Upload a CSV file with transactions"
+
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
