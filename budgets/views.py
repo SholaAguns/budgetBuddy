@@ -139,7 +139,13 @@ class BudgetList(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['budget_list'] = Budget.objects.filter(user=self.request.user)
+        show_archived = self.request.GET.get('archived', False)
+        if show_archived == 'true':
+            context['budget_list'] = Budget.objects.filter(user=self.request.user, is_archived=True)
+            context['show_archived'] = True
+        else:
+            context['budget_list'] = Budget.objects.filter(user=self.request.user, is_archived=False)
+            context['show_archived'] = False
         return context
 
 class SavingsTrackerList(LoginRequiredMixin, ListView):
@@ -346,6 +352,73 @@ def ajax_update_balance(request, pk):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required()
+def toggle_archive_budget(request, pk):
+    budget = get_object_or_404(Budget, pk=pk, user=request.user)
+    budget.is_archived = not budget.is_archived
+    budget.save()
+
+    action = "archived" if budget.is_archived else "unarchived"
+    messages.success(request, f"Budget {action} successfully")
+    return redirect('budgets:single_budget', pk=budget.id)
+
+
+@login_required()
+def bulk_archive_budgets(request):
+    if request.method == 'POST':
+        selected_budgets = request.POST.getlist('selected_budgets')
+        if selected_budgets:
+            budgets = Budget.objects.filter(
+                id__in=selected_budgets,
+                user=request.user,
+                is_archived=False
+            )
+            count = budgets.count()
+            budgets.update(is_archived=True)
+            messages.success(request, f"{count} budget(s) archived successfully")
+        else:
+            messages.warning(request, "No budgets selected")
+
+    return redirect('budgets:budget_list')
+
+
+@login_required()
+def bulk_unarchive_budgets(request):
+    if request.method == 'POST':
+        selected_budgets = request.POST.getlist('selected_budgets')
+        if selected_budgets:
+            budgets = Budget.objects.filter(
+                id__in=selected_budgets,
+                user=request.user,
+                is_archived=True
+            )
+            count = budgets.count()
+            budgets.update(is_archived=False)
+            messages.success(request, f"{count} budget(s) unarchived successfully")
+        else:
+            messages.warning(request, "No budgets selected")
+
+    return redirect('budgets:budget_list')
+
+
+@login_required()
+def bulk_delete_budgets(request):
+    if request.method == 'POST':
+        selected_budgets = request.POST.getlist('selected_budgets')
+        if selected_budgets:
+            budgets = Budget.objects.filter(
+                id__in=selected_budgets,
+                user=request.user
+            )
+            count = budgets.count()
+            budgets.delete()
+            messages.success(request, f"{count} budget(s) deleted successfully")
+        else:
+            messages.warning(request, "No budgets selected")
+
+    return redirect('budgets:budget_list')
 
 
 @login_required()

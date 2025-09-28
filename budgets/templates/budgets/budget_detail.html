@@ -70,6 +70,11 @@
         <a href="{% url 'budgets:add_budget_category' pk=budget.id %}" role="button" class="btn btn-outline-secondary w-80">Add Category</a>
         <a href="{% url 'budgets:update_budget' pk=budget.id %}" role="button" class="btn btn-outline-secondary  w-80">Edit Budget</a>
         <a href="{% url 'budgets:duplicate_budget' pk=budget.id %}" role="button" class="btn btn-outline-secondary  w-80">Duplicate Budget</a>
+        {% if budget.is_archived %}
+            <a href="{% url 'budgets:toggle_archive_budget' pk=budget.id %}" role="button" class="btn btn-outline-info  w-80">Unarchive Budget</a>
+        {% else %}
+            <a href="{% url 'budgets:toggle_archive_budget' pk=budget.id %}" role="button" class="btn btn-outline-warning  w-80">Archive Budget</a>
+        {% endif %}
         <a href="{% url 'budgets:delete_budget' pk=budget.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Budget</a>
         </div><br><br>
     {% endif %}

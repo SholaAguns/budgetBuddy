@@ -3,15 +3,69 @@
 
 {% block content %}
 <div class="container budget_heading" >
-        <h2>My Budgets</h2>
+        {% if show_archived %}
+            <h2>Archived Budgets</h2>
+        {% else %}
+            <h2>My Budgets</h2>
+        {% endif %}
 </div>
-<div id="budgetlist" class="container" align="center">
-    {% for budget in budget_list %}
-    <h3 class="budget_name">
-        <a href="{% url 'budgets:single_budget' pk=budget.id %}">{{ budget.name }}</a>
-    </h3>
-    <hr>
-	{% endfor %}
+
+<div class="container" align="center">
+    <div class="mb-3">
+        {% if show_archived %}
+            <a href="{% url 'budgets:budget_list' %}" class="btn btn-outline-primary">View Active Budgets</a>
+        {% else %}
+            <a href="{% url 'budgets:budget_list' %}?archived=true" class="btn btn-outline-secondary">View Archived Budgets</a>
+        {% endif %}
+    </div>
+
+    {% if budget_list %}
+        <!-- Bulk Actions -->
+        <div id="bulk-actions" class="mb-3" style="display: none;">
+            <div class="d-flex justify-content-center gap-2">
+                {% if show_archived %}
+                    <button id="bulk-unarchive-btn" class="btn btn-outline-info">Unarchive Selected</button>
+                {% else %}
+                    <button id="bulk-archive-btn" class="btn btn-outline-warning">Archive Selected</button>
+                {% endif %}
+                <button id="bulk-delete-btn" class="btn btn-outline-danger">Delete Selected</button>
+                <button id="cancel-selection-btn" class="btn btn-outline-secondary">Cancel</button>
+            </div>
+            <small class="text-muted">
+                <span id="selected-count">0</span> budget(s) selected
+            </small>
+        </div>
+
+        <!-- Select All -->
+        <div class="mb-3">
+            <label class="form-check-label">
+                <input type="checkbox" id="select-all" class="form-check-input"> Select All
+            </label>
+        </div>
+
+        <!-- Budget List -->
+        <form id="bulk-form" method="post">
+            {% csrf_token %}
+            {% for budget in budget_list %}
+            <div class="budget-item d-flex align-items-center justify-content-center mb-2">
+                <input type="checkbox" name="selected_budgets" value="{{ budget.id }}" class="form-check-input me-3 budget-checkbox">
+                <h3 class="mb-0">
+                    <a href="{% url 'budgets:single_budget' pk=budget.id %}">{{ budget.name }}</a>
+                    {% if budget.is_archived %}
+                        <span class="badge bg-secondary">Archived</span>
+                    {% endif %}
+                </h3>
+            </div>
+            <hr>
+            {% endfor %}
+        </form>
+    {% else %}
+        {% if show_archived %}
+            <p class="text-muted">No archived budgets found.</p>
+        {% else %}
+            <p class="text-muted">No active budgets found.</p>
+        {% endif %}
+    {% endif %}
 
     {% if user.is_authenticated %}
         <div id="budget_controls" class="container" align="center">
@@ -20,4 +74,133 @@
         </div><br><br>
     {% endif %}
 </div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                Are you sure you want to proceed?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const budgetCheckboxes = document.querySelectorAll('.budget-checkbox');
+    const bulkActions = document.getElementById('bulk-actions');
+    const selectedCountSpan = document.getElementById('selected-count');
+    const bulkForm = document.getElementById('bulk-form');
+    const cancelSelectionBtn = document.getElementById('cancel-selection-btn');
+    const bulkArchiveBtn = document.getElementById('bulk-archive-btn');
+    const bulkUnarchiveBtn = document.getElementById('bulk-unarchive-btn');
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+    function updateBulkActions() {
+        const selectedCheckboxes = document.querySelectorAll('.budget-checkbox:checked');
+        const count = selectedCheckboxes.length;
+
+        selectedCountSpan.textContent = count;
+
+        if (count > 0) {
+            bulkActions.style.display = 'block';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+
+        // Update select all checkbox state
+        if (count === budgetCheckboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (count > 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+    }
+
+    // Select all functionality
+    selectAllCheckbox.addEventListener('change', function() {
+        const isChecked = this.checked;
+        budgetCheckboxes.forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+        updateBulkActions();
+    });
+
+    // Individual checkbox functionality
+    budgetCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActions);
+    });
+
+    // Cancel selection
+    cancelSelectionBtn.addEventListener('click', function() {
+        budgetCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+        updateBulkActions();
+    });
+
+    // Bulk actions
+    function performBulkAction(action, needsConfirmation = false) {
+        const selectedBudgets = Array.from(document.querySelectorAll('.budget-checkbox:checked'))
+            .map(cb => cb.value);
+
+        if (selectedBudgets.length === 0) {
+            alert('Please select at least one budget.');
+            return;
+        }
+
+        function executeAction() {
+            bulkForm.action = `/budgets/bulk_${action}_budgets/`;
+            bulkForm.submit();
+        }
+
+        if (needsConfirmation) {
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            const confirmModalBody = document.getElementById('confirmModalBody');
+            const confirmActionBtn = document.getElementById('confirmAction');
+
+            if (action === 'delete') {
+                confirmModalBody.textContent = `Are you sure you want to delete ${selectedBudgets.length} budget(s)? This action cannot be undone.`;
+                confirmActionBtn.className = 'btn btn-danger';
+                confirmActionBtn.textContent = 'Delete';
+            }
+
+            confirmActionBtn.onclick = function() {
+                modal.hide();
+                executeAction();
+            };
+
+            modal.show();
+        } else {
+            executeAction();
+        }
+    }
+
+    if (bulkArchiveBtn) {
+        bulkArchiveBtn.addEventListener('click', () => performBulkAction('archive'));
+    }
+
+    if (bulkUnarchiveBtn) {
+        bulkUnarchiveBtn.addEventListener('click', () => performBulkAction('unarchive'));
+    }
+
+    bulkDeleteBtn.addEventListener('click', () => performBulkAction('delete', true));
+});
+</script>
 {% endblock %}
