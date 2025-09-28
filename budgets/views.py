@@ -116,6 +116,11 @@ class CreateRule(LoginRequiredMixin, CreateView):
 class RulesetDetail(LoginRequiredMixin, DetailView):
     model = Ruleset
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['all_categories'] = Category.objects.all().order_by('title')
+        return context
+
 
 class BudgetDetail(LoginRequiredMixin, DetailView):
     model = Budget
@@ -419,6 +424,126 @@ def bulk_delete_budgets(request):
             messages.warning(request, "No budgets selected")
 
     return redirect('budgets:budget_list')
+
+
+@login_required()
+def ajax_update_ruleset_name(request, pk):
+    if request.method == 'POST':
+        try:
+            ruleset = get_object_or_404(Ruleset, pk=pk, user=request.user)
+            data = json.loads(request.body)
+            new_name = data.get('name', '').strip()
+
+            if not new_name:
+                return JsonResponse({'success': False, 'error': 'Name cannot be empty'})
+
+            # Check for uniqueness
+            if Ruleset.objects.filter(user=request.user, name=new_name).exclude(pk=pk).exists():
+                return JsonResponse({'success': False, 'error': 'A ruleset with this name already exists'})
+
+            ruleset.name = new_name
+            ruleset.save()
+
+            return JsonResponse({'success': True, 'new_name': new_name})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required()
+def ajax_update_rule(request, pk):
+    if request.method == 'POST':
+        try:
+            rule = get_object_or_404(Rule, pk=pk, ruleset__user=request.user)
+            data = json.loads(request.body)
+            new_keyword = data.get('keyword', '').strip()
+            new_category_id = data.get('category_id')
+
+            if not new_keyword:
+                return JsonResponse({'success': False, 'error': 'Keyword cannot be empty'})
+
+            if not new_category_id:
+                return JsonResponse({'success': False, 'error': 'Category must be selected'})
+
+            category = get_object_or_404(Category, pk=new_category_id)
+
+            # Check for uniqueness within the ruleset
+            if Rule.objects.filter(
+                ruleset=rule.ruleset,
+                keyword=new_keyword
+            ).exclude(pk=pk).exists():
+                return JsonResponse({'success': False, 'error': 'A rule with this keyword already exists in this ruleset'})
+
+            rule.keyword = new_keyword
+            rule.category = category
+            rule.save()
+
+            return JsonResponse({
+                'success': True,
+                'keyword': new_keyword,
+                'category_name': category.title
+            })
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required()
+def ajax_delete_rule(request, pk):
+    if request.method == 'DELETE':
+        try:
+            rule = get_object_or_404(Rule, pk=pk, ruleset__user=request.user)
+            rule.delete()
+            return JsonResponse({'success': True})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+@login_required()
+def ajax_add_rule(request, pk):
+    if request.method == 'POST':
+        try:
+            ruleset = get_object_or_404(Ruleset, pk=pk, user=request.user)
+            data = json.loads(request.body)
+            keyword = data.get('keyword', '').strip()
+            category_id = data.get('category_id')
+
+            if not keyword:
+                return JsonResponse({'success': False, 'error': 'Keyword cannot be empty'})
+
+            if not category_id:
+                return JsonResponse({'success': False, 'error': 'Category must be selected'})
+
+            category = get_object_or_404(Category, pk=category_id)
+
+            # Check for uniqueness within the ruleset
+            if Rule.objects.filter(ruleset=ruleset, keyword=keyword).exists():
+                return JsonResponse({'success': False, 'error': 'A rule with this keyword already exists in this ruleset'})
+
+            rule = Rule.objects.create(
+                ruleset=ruleset,
+                keyword=keyword,
+                category=category
+            )
+
+            return JsonResponse({
+                'success': True,
+                'rule_id': rule.id,
+                'keyword': keyword,
+                'category_name': category.title
+            })
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
 @login_required()

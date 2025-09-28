@@ -3,36 +3,386 @@
 
 {% block content %}
 <div class="container budget_heading" >
-        <h2 id="rulesetname">{{ruleset.name}}</h2>
+    <div class="d-flex align-items-center justify-content-center mb-3">
+        <h2 class="me-3">
+            <span id="ruleset-name">{{ruleset.name}}</span>
+        </h2>
+        {% if user.is_authenticated and ruleset.user == user %}
+            <button id="edit-name-btn" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i> Edit Name
+            </button>
+        {% endif %}
+    </div>
+    <div id="edit-name-form" style="display: none;" class="mb-3">
+        <div class="input-group justify-content-center" style="max-width: 400px; margin: 0 auto;">
+            <input type="text" id="new-name" class="form-control"
+                   value="{{ruleset.name}}" placeholder="Enter ruleset name">
+            <button id="save-name-btn" class="btn btn-success">Save</button>
+            <button id="cancel-name-btn" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
 </div>
 <div class="container" align="center">
   <table class="table table-striped">
        <thead class="table-dark">
             <tr>
                 <th scope="col">Keyword </th>
-                <th scope="col"> Category</th>
-                <th scope="col"> </th>
+                <th scope="col">Category</th>
+                <th scope="col">Actions</th>
             </tr>
        </thead>
        <tbody>
         {% for rule in ruleset.rule_set.all %}
-              <tr>
-                <td>{{ rule.keyword}} </td>
-                <td>{{ rule.category}} </td>
-                <td><a href="{% url 'budgets:delete_rule' pk=rule.id %}"><i class="bi bi-trash3"></i></a> </td>
-
+              <tr class="rule-row" data-rule-id="{{ rule.id }}">
+                <td>
+                    <span class="rule-keyword">{{ rule.keyword }}</span>
+                    <input type="text" class="form-control rule-keyword-edit"
+                           value="{{ rule.keyword }}" style="display: none;">
+                </td>
+                <td>
+                    <span class="rule-category">{{ rule.category }}</span>
+                    <select class="form-control rule-category-edit" style="display: none;">
+                        {% for category in all_categories %}
+                            <option value="{{ category.id }}"
+                                    {% if category.id == rule.category.id %}selected{% endif %}>
+                                {{ category.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <div class="rule-actions">
+                        {% if user.is_authenticated and ruleset.user == user %}
+                            <button class="btn btn-sm btn-outline-primary edit-rule-btn">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-success save-rule-btn" style="display: none;">
+                                <i class="bi bi-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-secondary cancel-rule-btn" style="display: none;">
+                                <i class="bi bi-x"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-rule-btn">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </td>
               </tr>
         {% endfor %}
          </tbody>
   </table>
+
+  {% if user.is_authenticated and ruleset.user == user %}
+      <!-- Add New Rule Section -->
+      <div class="card mt-4" style="max-width: 600px; margin: 0 auto;">
+          <div class="card-header">
+              <h5 class="mb-0">Add New Rule</h5>
+          </div>
+          <div class="card-body">
+              <form id="add-rule-form">
+                  <div class="row">
+                      <div class="col-md-5">
+                          <input type="text" id="new-rule-keyword" class="form-control"
+                                 placeholder="Enter keyword" required>
+                      </div>
+                      <div class="col-md-5">
+                          <select id="new-rule-category" class="form-control" required>
+                              <option value="">Select Category</option>
+                              {% for category in all_categories %}
+                                  <option value="{{ category.id }}">{{ category.title }}</option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                      <div class="col-md-2">
+                          <button type="submit" class="btn btn-primary">
+                              <i class="bi bi-plus"></i> Add
+                          </button>
+                      </div>
+                  </div>
+              </form>
+          </div>
+      </div>
+  {% endif %}</div>
     {% if user.is_authenticated and ruleset.user == user %}
         <div id="budget_controls" class="container" align="center">
         <br><br>
-        <a href="{% url 'budgets:add_rule' pk=ruleset.id %}" role="button" class="btn btn-outline-secondary w-80">Add Rule</a>
-        <a href="{% url 'budgets:update_ruleset' pk=ruleset.id %}" role="button" class="btn btn-outline-secondary  w-80">Edit Ruleset</a>
         <a href="{% url 'budgets:duplicate_ruleset' pk=ruleset.id %}" role="button" class="btn btn-outline-secondary  w-80">Duplicate Ruleset</a>
         <a href="{% url 'budgets:delete_ruleset' pk=ruleset.id %}" role="button" class="btn btn-outline-danger  w-80">Delete Ruleset</a>
         </div><br><br>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editNameBtn = document.getElementById('edit-name-btn');
+    const editNameForm = document.getElementById('edit-name-form');
+    const saveNameBtn = document.getElementById('save-name-btn');
+    const cancelNameBtn = document.getElementById('cancel-name-btn');
+    const newNameInput = document.getElementById('new-name');
+    const rulesetNameSpan = document.getElementById('ruleset-name');
+
+    // Ruleset name editing
+    if (editNameBtn) {
+        editNameBtn.addEventListener('click', function() {
+            editNameForm.style.display = 'block';
+            editNameBtn.style.display = 'none';
+            newNameInput.focus();
+            newNameInput.select();
+        });
+
+        cancelNameBtn.addEventListener('click', function() {
+            editNameForm.style.display = 'none';
+            editNameBtn.style.display = 'inline-block';
+            newNameInput.value = rulesetNameSpan.textContent;
+        });
+
+        saveNameBtn.addEventListener('click', function() {
+            const newName = newNameInput.value.trim();
+
+            if (!newName) {
+                alert('Please enter a valid name.');
+                return;
+            }
+
+            fetch(`{% url 'budgets:ajax_update_ruleset_name' pk=ruleset.id %}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    'name': newName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    rulesetNameSpan.textContent = newName;
+                    editNameForm.style.display = 'none';
+                    editNameBtn.style.display = 'inline-block';
+                    showAlert('Ruleset name updated successfully!', 'success');
+                } else {
+                    alert('Error updating name: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating name. Please try again.');
+            });
+        });
+
+        newNameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                saveNameBtn.click();
+            }
+        });
+    }
+
+    // Rule editing functionality
+    document.querySelectorAll('.edit-rule-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.rule-row');
+            enterEditMode(row);
+        });
+    });
+
+    document.querySelectorAll('.save-rule-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.rule-row');
+            saveRule(row);
+        });
+    });
+
+    document.querySelectorAll('.cancel-rule-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.rule-row');
+            cancelEditMode(row);
+        });
+    });
+
+    document.querySelectorAll('.delete-rule-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.rule-row');
+            deleteRule(row);
+        });
+    });
+
+    // Add new rule functionality
+    const addRuleForm = document.getElementById('add-rule-form');
+    if (addRuleForm) {
+        addRuleForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            addNewRule();
+        });
+    }
+
+    function enterEditMode(row) {
+        const keywordSpan = row.querySelector('.rule-keyword');
+        const keywordEdit = row.querySelector('.rule-keyword-edit');
+        const categorySpan = row.querySelector('.rule-category');
+        const categoryEdit = row.querySelector('.rule-category-edit');
+        const editBtn = row.querySelector('.edit-rule-btn');
+        const saveBtn = row.querySelector('.save-rule-btn');
+        const cancelBtn = row.querySelector('.cancel-rule-btn');
+
+        keywordSpan.style.display = 'none';
+        keywordEdit.style.display = 'block';
+        categorySpan.style.display = 'none';
+        categoryEdit.style.display = 'block';
+        editBtn.style.display = 'none';
+        saveBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'inline-block';
+
+        keywordEdit.focus();
+    }
+
+    function cancelEditMode(row) {
+        const keywordSpan = row.querySelector('.rule-keyword');
+        const keywordEdit = row.querySelector('.rule-keyword-edit');
+        const categorySpan = row.querySelector('.rule-category');
+        const categoryEdit = row.querySelector('.rule-category-edit');
+        const editBtn = row.querySelector('.edit-rule-btn');
+        const saveBtn = row.querySelector('.save-rule-btn');
+        const cancelBtn = row.querySelector('.cancel-rule-btn');
+
+        // Reset values
+        keywordEdit.value = keywordSpan.textContent;
+
+        keywordSpan.style.display = 'block';
+        keywordEdit.style.display = 'none';
+        categorySpan.style.display = 'block';
+        categoryEdit.style.display = 'none';
+        editBtn.style.display = 'inline-block';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+    }
+
+    function saveRule(row) {
+        const ruleId = row.dataset.ruleId;
+        const keyword = row.querySelector('.rule-keyword-edit').value.trim();
+        const categoryId = row.querySelector('.rule-category-edit').value;
+
+        if (!keyword) {
+            alert('Please enter a keyword.');
+            return;
+        }
+
+        if (!categoryId) {
+            alert('Please select a category.');
+            return;
+        }
+
+        fetch(`{% url 'budgets:ajax_update_rule' pk=0 %}`.replace('0', ruleId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                'keyword': keyword,
+                'category_id': categoryId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                row.querySelector('.rule-keyword').textContent = keyword;
+                row.querySelector('.rule-category').textContent = data.category_name;
+                cancelEditMode(row);
+                showAlert('Rule updated successfully!', 'success');
+            } else {
+                alert('Error updating rule: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating rule. Please try again.');
+        });
+    }
+
+    function deleteRule(row) {
+        const ruleId = row.dataset.ruleId;
+        const keyword = row.querySelector('.rule-keyword').textContent;
+
+        if (!confirm(`Are you sure you want to delete the rule for "${keyword}"?`)) {
+            return;
+        }
+
+        fetch(`{% url 'budgets:ajax_delete_rule' pk=0 %}`.replace('0', ruleId), {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                row.remove();
+                showAlert('Rule deleted successfully!', 'success');
+            } else {
+                alert('Error deleting rule: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting rule. Please try again.');
+        });
+    }
+
+    function addNewRule() {
+        const keyword = document.getElementById('new-rule-keyword').value.trim();
+        const categoryId = document.getElementById('new-rule-category').value;
+
+        if (!keyword) {
+            alert('Please enter a keyword.');
+            return;
+        }
+
+        if (!categoryId) {
+            alert('Please select a category.');
+            return;
+        }
+
+        fetch(`{% url 'budgets:ajax_add_rule' pk=ruleset.id %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                'keyword': keyword,
+                'category_id': categoryId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload to show the new rule
+            } else {
+                alert('Error adding rule: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding rule. Please try again.');
+        });
+    }
+
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container').prepend(alertDiv);
+
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+});
+</script>
+
 {% endblock %}

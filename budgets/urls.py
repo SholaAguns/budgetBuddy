@@ -38,5 +38,9 @@ urlpatterns = [
     path('budget/<int:pk>/toggle_archive', views.toggle_archive_budget, name='toggle_archive_budget'),
     path('bulk_archive_budgets/', views.bulk_archive_budgets, name='bulk_archive_budgets'),
     path('bulk_unarchive_budgets/', views.bulk_unarchive_budgets, name='bulk_unarchive_budgets'),
-    path('bulk_delete_budgets/', views.bulk_delete_budgets, name='bulk_delete_budgets')
+    path('bulk_delete_budgets/', views.bulk_delete_budgets, name='bulk_delete_budgets'),
+    path('ruleset/<int:pk>/ajax_update_name', views.ajax_update_ruleset_name, name='ajax_update_ruleset_name'),
+    path('rule/<int:pk>/ajax_update', views.ajax_update_rule, name='ajax_update_rule'),
+    path('rule/<int:pk>/ajax_delete', views.ajax_delete_rule, name='ajax_delete_rule'),
+    path('ruleset/<int:pk>/ajax_add_rule', views.ajax_add_rule, name='ajax_add_rule')
 ]
