@@ -1,6 +1,6 @@
 import csv
 from datetime import datetime
-from .models import Transaction
+from reports.models import Transaction
 from budgets.models import Rule, Category
 import fitz  # PyMuPDF
 

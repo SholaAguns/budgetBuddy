@@ -14,10 +14,11 @@ from easy_pdf.views import PDFTemplateView
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from budgets.models import BudgetCategory
-from .models import Report, Transaction
+from .models import Report, Transaction, Account
 from .forms import AddBudgetForm, AddRulesetForm, ReportForm, ReportNotesForm, TransactionForm
 from django.contrib import messages
-from .services import TransactionService
+from .services.transaction_service import TransactionService
+from .services.gocardless_service import GoCardlessService
 
 
 class CreateReport(LoginRequiredMixin, CreateView):
@@ -434,3 +435,155 @@ def bulk_delete_reports(request):
             messages.warning(request, "No reports selected")
 
     return redirect('reports:report_list')
+
+
+# Bank Account Management Views
+
+class AccountList(LoginRequiredMixin, ListView):
+    """List all connected bank accounts"""
+    model = Account
+    template_name = 'reports/account_list.html'
+    context_object_name = 'accounts'
+
+    def get_queryset(self):
+        return Account.objects.filter(user=self.request.user)
+
+
+@login_required()
+def connect_bank_account(request):
+    """Initiate bank account connection"""
+    if request.method == 'POST':
+        institution_id = request.POST.get('institution_id')
+        account_name = request.POST.get('account_name', '')
+
+        try:
+            service = GoCardlessService()
+            redirect_uri = request.build_absolute_uri(reverse('reports:account_callback'))
+
+            requisition_data = service.create_requisition(
+                institution_id=institution_id,
+                redirect_uri=redirect_uri,
+                user_reference=str(request.user.id)
+            )
+
+            # Store requisition ID and account name in session
+            request.session['requisition_id'] = requisition_data['requisition_id']
+            request.session['account_name'] = account_name
+
+            # Redirect to bank authorization
+            return redirect(requisition_data['link'])
+
+        except Exception as e:
+            import traceback
+            print(f"Error in POST connect_bank_account: {traceback.format_exc()}")
+            messages.error(request, f"Error connecting account: {str(e)}")
+            return redirect('reports:account_list')
+
+    # GET request - show institution selection
+    from django.conf import settings
+
+    # Check if credentials are configured
+    if not settings.GOCARDLESS_SECRET_ID or not settings.GOCARDLESS_SECRET_KEY:
+        messages.error(
+            request,
+            "GoCardless API credentials not configured. Please add GOCARDLESS_SECRET_ID and "
+            "GOCARDLESS_SECRET_KEY to your environment variables. "
+            "Get credentials from: https://bankaccountdata.gocardless.com/user-secrets/"
+        )
+        return redirect('reports:account_list')
+
+    try:
+        service = GoCardlessService()
+        country_code = request.GET.get('country', 'GB')
+        institutions = service.get_institutions(country_code=country_code)
+
+        return render(request, 'reports/connect_account.html', {
+            'institutions': institutions,
+            'country_code': country_code
+        })
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in GET connect_bank_account: {error_details}")
+        messages.error(request, f"Error loading banks: {str(e)}. Please check your GoCardless API credentials.")
+        return redirect('reports:account_list')
+
+
+@login_required()
+def account_callback(request):
+    """Handle callback after bank authorization"""
+    requisition_id = request.session.get('requisition_id')
+    account_name = request.session.get('account_name', '')
+
+    if not requisition_id:
+        messages.error(request, "Invalid callback - no requisition found")
+        return redirect('reports:account_list')
+
+    try:
+        service = GoCardlessService()
+        accounts = service.save_account(request.user, requisition_id, account_name)
+
+        # Clear session data
+        del request.session['requisition_id']
+        if 'account_name' in request.session:
+            del request.session['account_name']
+
+        messages.success(request, f"Successfully connected {len(accounts)} account(s)")
+        return redirect('reports:account_list')
+
+    except Exception as e:
+        messages.error(request, f"Error saving account: {str(e)}")
+        return redirect('reports:account_list')
+
+
+@login_required()
+def disconnect_account(request, pk):
+    """Disconnect a bank account"""
+    account = get_object_or_404(Account, pk=pk, user=request.user)
+
+    try:
+        service = GoCardlessService()
+        service.delete_requisition(account.requisition_id)
+        account.delete()
+        messages.success(request, f"Account '{account.name}' disconnected successfully")
+    except Exception as e:
+        messages.error(request, f"Error disconnecting account: {str(e)}")
+
+    return redirect('reports:account_list')
+
+
+@login_required()
+def import_from_account(request, pk):
+    """Import transactions from a connected account to a report"""
+    report = get_object_or_404(Report, pk=pk, user=request.user)
+
+    if request.method == 'POST':
+        account_id = request.POST.get('account_id')
+        account = get_object_or_404(Account, pk=account_id, user=request.user)
+
+        if not report.ruleset:
+            messages.error(request, "Please add a ruleset to the report before importing transactions")
+            return redirect('reports:single_report', pk=report.id)
+
+        try:
+            service = GoCardlessService()
+            created, skipped = service.import_transactions_to_report(
+                account=account,
+                report=report
+            )
+
+            messages.success(
+                request,
+                f"Imported {created} transaction(s) from {account.name}. Skipped {skipped} duplicate(s)."
+            )
+        except Exception as e:
+            messages.error(request, f"Error importing transactions: {str(e)}")
+
+        return redirect('reports:single_report', pk=report.id)
+
+    # GET request - show account selection
+    accounts = Account.objects.filter(user=request.user, is_active=True)
+    return render(request, 'reports/import_from_account.html', {
+        'report': report,
+        'accounts': accounts
+    })

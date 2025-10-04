@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container">
+    <h2>Import Transactions from Bank Account</h2>
+    <p class="text-muted">Select a connected account to import transactions to "{{ report.name }}"</p>
+
+    {% if accounts %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="account_id">Select Account:</label>
+                <select name="account_id" id="account_id" class="form-select" required>
+                    <option value="">-- Choose an account --</option>
+                    {% for account in accounts %}
+                    <option value="{{ account.id }}">
+                        {{ account.name }} - {{ account.institution_name }}
+                        {% if account.iban %}({{ account.iban }}){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Note:</strong> This will import transactions within the report date range
+                ({{ report.start_date }} to {{ report.end_date }}).
+                Duplicate transactions will be automatically skipped.
+            </div>
+
+            <button type="submit" class="btn btn-primary">Import Transactions</button>
+            <a href="{% url 'reports:single_report' pk=report.id %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            No connected bank accounts found.
+            <a href="{% url 'reports:connect_account' %}">Connect an account</a> first.
+        </div>
+        <a href="{% url 'reports:single_report' pk=report.id %}" class="btn btn-secondary">Back to Report</a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -7,3 +7,7 @@ bkp
 *myruleset.py
 
 *.pyc
+
+.env*
+
+todo

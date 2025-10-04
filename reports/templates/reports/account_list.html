@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container">
+    <h2>Connected Bank Accounts</h2>
+    <p class="text-muted">Connect your bank accounts to automatically import transactions</p>
+
+    <div class="alert alert-info">
+        <strong><i class="bi bi-info-circle"></i> Setup Required:</strong>
+        To use bank account integration, you need GoCardless API credentials.
+        <ol style="margin-top: 10px; margin-bottom: 0;">
+            <li>Sign up at <a href="https://bankaccountdata.gocardless.com/" target="_blank">GoCardless Bank Account Data</a></li>
+            <li>Get your credentials from <a href="https://bankaccountdata.gocardless.com/user-secrets/" target="_blank">User Secrets</a></li>
+            <li>Add them to your <code>.env</code> file as <code>GOCARDLESS_SECRET_ID</code> and <code>GOCARDLESS_SECRET_KEY</code></li>
+            <li>Restart your Django server</li>
+        </ol>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'reports:connect_account' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Connect New Account
+        </a>
+    </div>
+
+    {% if accounts %}
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Account Name</th>
+                    <th>Bank</th>
+                    <th>IBAN</th>
+                    <th>Connected</th>
+                    <th>Last Synced</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                <tr>
+                    <td>{{ account.name }}</td>
+                    <td>{{ account.institution_name|default:"Unknown" }}</td>
+                    <td>{{ account.iban|default:"N/A" }}</td>
+                    <td>{{ account.connected_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ account.last_synced|date:"Y-m-d H:i"|default:"Never" }}</td>
+                    <td>
+                        {% if account.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'reports:disconnect_account' pk=account.id %}"
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('Are you sure you want to disconnect this account?')">
+                            <i class="bi bi-x-circle"></i> Disconnect
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No bank accounts connected yet.
+            <a href="{% url 'reports:connect_account' %}">Connect your first account</a> to get started.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -75,6 +75,9 @@
                 {% else %}
                     <span class="text-muted">No transaction sheet uploaded</span>
                 {% endif %}
+                <a href="{% url 'reports:import_from_account' pk=report.id %}" role="button" class="btn btn-outline-primary w-80">
+                    <i class="bi bi-bank"></i> Import from Bank Account
+                </a>
                 <a href="{% url 'reports:clear_transactions' pk=report.id %}" role="button" class="btn btn-outline-secondary w-80">Clear Transactions</a>
             {% else %}
                 <span class="text-danger">No transactions imported. Add ruleset to proceed.</span>

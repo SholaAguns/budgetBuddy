@@ -49,6 +49,30 @@ class Report(models.Model):
         return total_spending
 
 
+class Account(models.Model):
+    """Represents a connected bank account via GoCardless"""
+    user = models.ForeignKey(User, related_name='bank_accounts', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, help_text="Custom name for this account")
+    institution_name = models.CharField(max_length=200, blank=True, null=True)
+
+    # GoCardless specific fields
+    requisition_id = models.CharField(max_length=100, unique=True, help_text="GoCardless requisition ID")
+    account_id = models.CharField(max_length=100, unique=True, help_text="GoCardless account ID")
+    iban = models.CharField(max_length=34, blank=True, null=True)
+
+    # Status and metadata
+    is_active = models.BooleanField(default=True)
+    connected_at = models.DateTimeField(auto_now_add=True)
+    last_synced = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-connected_at']
+        unique_together = ['user', 'account_id']
+
+    def __str__(self):
+        return f"{self.name} ({self.institution_name or 'Bank Account'})"
+
+
 class Transaction(models.Model):
     name = models.CharField(default="", max_length=150)
     date = models.DateField()
@@ -56,6 +80,10 @@ class Transaction(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     report = models.ForeignKey(Report, on_delete=models.CASCADE)
     is_expense = models.BooleanField(default=False)
+
+    # Optional link to bank account
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, blank=True, null=True, related_name='transactions')
+    external_id = models.CharField(max_length=200, blank=True, null=True, help_text="External transaction ID from bank")
 
     def __str__(self):
         return f"{self.name} - {self.date}"

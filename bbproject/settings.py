@@ -11,9 +11,13 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -135,3 +139,8 @@ LOGOUT_REDIRECT_URL = 'home'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# GoCardless Bank Account Data API Settings
+# Get your credentials from: https://bankaccountdata.gocardless.com/user-secrets/
+GOCARDLESS_SECRET_ID = os.getenv('GOCARDLESS_SECRET_ID', '')
+GOCARDLESS_SECRET_KEY = os.getenv('GOCARDLESS_SECRET_KEY', '')
