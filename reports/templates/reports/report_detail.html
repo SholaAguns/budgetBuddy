@@ -93,10 +93,16 @@
           <table class="table table-striped" id="all_transactions_table">
                <thead class="table-dark">
                     <tr>
-                        <th scope="col">Date </th>
-                        <th scope="col">Name</th>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('all_transactions_table', 0, 'date')">
+                            Date <i class="bi bi-arrow-down-up"></i>
+                        </th>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('all_transactions_table', 1, 'text')">
+                            Name <i class="bi bi-arrow-down-up"></i>
+                        </th>
                         <th scope="col">Category</th>
-                        <th scope="col">Amount</th>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('all_transactions_table', 3, 'number')">
+                            Amount <i class="bi bi-arrow-down-up"></i>
+                        </th>
                         <th scope="col"></th>
                     </tr>
                </thead>
@@ -150,10 +156,16 @@
               <table class="table table-striped" id="expenses_table">
                    <thead class="table-dark">
                         <tr>
-                            <th scope="col">Date </th>
-                            <th scope="col">Name</th>
+                            <th scope="col" style="cursor: pointer;" onclick="sortTable('expenses_table', 0, 'date')">
+                                Date <i class="bi bi-arrow-down-up"></i>
+                            </th>
+                            <th scope="col" style="cursor: pointer;" onclick="sortTable('expenses_table', 1, 'text')">
+                                Name <i class="bi bi-arrow-down-up"></i>
+                            </th>
                             <th scope="col">Category</th>
-                            <th scope="col">Amount</th>
+                            <th scope="col" style="cursor: pointer;" onclick="sortTable('expenses_table', 3, 'number')">
+                                Amount <i class="bi bi-arrow-down-up"></i>
+                            </th>
                         </tr>
                    </thead>
                    <tbody>
@@ -200,10 +212,16 @@
               <table class="table table-striped" id="earnings_table">
                    <thead class="table-dark">
                         <tr>
-                            <th scope="col">Date </th>
-                            <th scope="col">Name</th>
+                            <th scope="col" style="cursor: pointer;" onclick="sortTable('earnings_table', 0, 'date')">
+                                Date <i class="bi bi-arrow-down-up"></i>
+                            </th>
+                            <th scope="col" style="cursor: pointer;" onclick="sortTable('earnings_table', 1, 'text')">
+                                Name <i class="bi bi-arrow-down-up"></i>
+                            </th>
                             <th scope="col">Category</th>
-                            <th scope="col">Amount</th>
+                            <th scope="col" style="cursor: pointer;" onclick="sortTable('earnings_table', 3, 'number')">
+                                Amount <i class="bi bi-arrow-down-up"></i>
+                            </th>
                         </tr>
                    </thead>
                    <tbody>
@@ -561,6 +579,49 @@
                     rows[i].style.display = 'none';
                 }
             }
+        }
+
+        // Table sorting functionality
+        let sortDirections = {};
+
+        function sortTable(tableId, columnIndex, dataType) {
+            const table = document.getElementById(tableId);
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+
+            // Initialize sort direction for this table-column combination
+            const sortKey = tableId + '-' + columnIndex;
+            if (!sortDirections[sortKey]) {
+                sortDirections[sortKey] = 'asc';
+            }
+
+            // Toggle sort direction
+            const isAscending = sortDirections[sortKey] === 'asc';
+            sortDirections[sortKey] = isAscending ? 'desc' : 'asc';
+
+            // Sort rows based on data type
+            rows.sort((a, b) => {
+                let aValue = a.getElementsByTagName('td')[columnIndex].textContent.trim();
+                let bValue = b.getElementsByTagName('td')[columnIndex].textContent.trim();
+
+                if (dataType === 'date') {
+                    aValue = new Date(aValue);
+                    bValue = new Date(bValue);
+                } else if (dataType === 'number') {
+                    aValue = parseFloat(aValue.replace(/[^0-9.-]/g, '')) || 0;
+                    bValue = parseFloat(bValue.replace(/[^0-9.-]/g, '')) || 0;
+                } else {
+                    aValue = aValue.toLowerCase();
+                    bValue = bValue.toLowerCase();
+                }
+
+                if (aValue < bValue) return isAscending ? -1 : 1;
+                if (aValue > bValue) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            // Re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
         }
 
         // Event listeners for category filters
