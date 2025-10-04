@@ -1,8 +1,5 @@
 - Savings tracker: Create or Detail (No list)
-- Filter by category
-- Sort by category
 - Keep Manually added transactions
-- Make Trans sheet not required
 - Refactor html pages
 - Page titles
 - Calendar

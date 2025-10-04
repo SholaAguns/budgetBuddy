@@ -41,13 +41,16 @@ class TransactionService:
 
 
                 if report.start_date <= date <= report.end_date:
-                    Transaction.objects.create(
+                    # Use get_or_create to avoid duplicates based on report, date, name, and amount
+                    Transaction.objects.get_or_create(
                         report=report,
                         name=name,
                         date=date,
                         amount=abs(amount),
-                        is_expense=is_expense,
-                        category=category
+                        defaults={
+                            'is_expense': is_expense,
+                            'category': category
+                        }
                     )
 
     def create_transactions_from_pdf(self, report):
@@ -83,13 +86,16 @@ class TransactionService:
                     category = TransactionService.set_category(rules, description)
 
                     if report.start_date <= date <= report.end_date:
-                        Transaction.objects.create(
+                        # Use get_or_create to avoid duplicates based on report, date, name, and amount
+                        Transaction.objects.get_or_create(
                             report=report,
                             name=description,
                             date=date,
                             amount=abs(amount),
-                            is_expense=is_expense,
-                            category=category
+                            defaults={
+                                'is_expense': is_expense,
+                                'category': category
+                            }
                         )
 
                 except Exception as e:

@@ -38,10 +38,23 @@ class CreateTransaction(LoginRequiredMixin, CreateView):
     form_class = TransactionForm
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
         report = Report.objects.get(
             id=self.kwargs.get("pk"),
         )
+
+        # Check for duplicate transaction
+        duplicate = Transaction.objects.filter(
+            report=report,
+            name=form.cleaned_data['name'],
+            date=form.cleaned_data['date'],
+            amount=form.cleaned_data['amount']
+        ).first()
+
+        if duplicate:
+            messages.warning(self.request, "A transaction with the same date, name, and amount already exists.")
+            return HttpResponseRedirect(reverse('reports:single_report', kwargs={'pk': report.id}))
+
+        self.object = form.save(commit=False)
         self.object.report = report
         self.object.save()
         return super().form_valid(form)
