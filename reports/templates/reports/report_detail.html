@@ -81,7 +81,16 @@
             {% endif %}
         </div>
     {% if report.transaction_set.all %}
-          <table class="table table-striped">
+        <div style="padding-bottom: 15px;">
+            <label for="all_transactions_category_filter" style="margin-right: 10px;">Filter by Category:</label>
+            <select id="all_transactions_category_filter" class="form-select" style="width: auto; display: inline-block;">
+                <option value="">All Categories</option>
+                {% for category in all_categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+        </div>
+          <table class="table table-striped" id="all_transactions_table">
                <thead class="table-dark">
                     <tr>
                         <th scope="col">Date </th>
@@ -93,7 +102,7 @@
                </thead>
                <tbody>
                         {% for transaction in report.transaction_set.all %}
-                               <tr>
+                               <tr data-category="{{ transaction.category }}">
                                 <td>{{ transaction.date}} </td>
                                 <td>{{ transaction.name}} </td>
                                 <td>{{ transaction.category}} </td>
@@ -129,7 +138,16 @@
                 <div class="container report_section" id="expenses_chart_section" align="center">
                      <canvas id="expensesPieChart" style="display: none; box-sizing: border-box; height: 600px; width: 600px;"></canvas>
                 </div><br><br>
-              <table class="table table-striped">
+                <div style="padding-bottom: 15px;">
+                    <label for="expenses_category_filter" style="margin-right: 10px;">Filter by Category:</label>
+                    <select id="expenses_category_filter" class="form-select" style="width: auto; display: inline-block;">
+                        <option value="">All Categories</option>
+                        {% for category in expense_categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+              <table class="table table-striped" id="expenses_table">
                    <thead class="table-dark">
                         <tr>
                             <th scope="col">Date </th>
@@ -140,7 +158,7 @@
                    </thead>
                    <tbody>
                             {% for transaction in expenses %}
-                                   <tr>
+                                   <tr data-category="{{ transaction.category }}">
                                     <td>{{ transaction.date}} </td>
                                     <td>{{ transaction.name}} </td>
                                     <td>{{ transaction.category}} </td>
@@ -166,11 +184,20 @@
                 <h3>Total Earnings: ${{ earnings_total }}</h3><br><br>
 
                 <h5>Top categories</h5>
-                <div class="container report_section" id="earnings_chart_section" align="center" 
+                <div class="container report_section" id="earnings_chart_section" align="center"
                     style="display: none; box-sizing: border-box; height: 600px; width: 600px;">
                      <canvas id="earningsPieChart" width="150" height="50"></canvas>
                 </div><br><br>
-              <table class="table table-striped">
+                <div style="padding-bottom: 15px;">
+                    <label for="earnings_category_filter" style="margin-right: 10px;">Filter by Category:</label>
+                    <select id="earnings_category_filter" class="form-select" style="width: auto; display: inline-block;">
+                        <option value="">All Categories</option>
+                        {% for category in earning_categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+              <table class="table table-striped" id="earnings_table">
                    <thead class="table-dark">
                         <tr>
                             <th scope="col">Date </th>
@@ -181,7 +208,7 @@
                    </thead>
                    <tbody>
                             {% for transaction in earnings %}
-                                   <tr>
+                                   <tr data-category="{{ transaction.category }}">
                                     <td>{{ transaction.date}} </td>
                                     <td>{{ transaction.name}} </td>
                                     <td>{{ transaction.category}} </td>
@@ -519,6 +546,47 @@
                 section.style.display='none';
               }
         }
+
+        // Category filtering functionality
+        function filterTable(tableId, filterValue) {
+            const table = document.getElementById(tableId);
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const category = rows[i].getAttribute('data-category');
+
+                if (filterValue === '' || category === filterValue) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        }
+
+        // Event listeners for category filters
+        document.addEventListener('DOMContentLoaded', function() {
+            const allTransactionsFilter = document.getElementById('all_transactions_category_filter');
+            const expensesFilter = document.getElementById('expenses_category_filter');
+            const earningsFilter = document.getElementById('earnings_category_filter');
+
+            if (allTransactionsFilter) {
+                allTransactionsFilter.addEventListener('change', function() {
+                    filterTable('all_transactions_table', this.value);
+                });
+            }
+
+            if (expensesFilter) {
+                expensesFilter.addEventListener('change', function() {
+                    filterTable('expenses_table', this.value);
+                });
+            }
+
+            if (earningsFilter) {
+                earningsFilter.addEventListener('change', function() {
+                    filterTable('earnings_table', this.value);
+                });
+            }
+        });
     </script>
 
 {% endblock %}

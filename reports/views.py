@@ -139,6 +139,16 @@ class ReportDetail(LoginRequiredMixin, DetailView):
 
         context['expenses_by_category'] = expenses_by_category_json
         context['earnings_by_category'] = earnings_by_category_json
+
+        # Get unique categories for filtering
+        all_categories = Transaction.objects.filter(report=report).values_list('category__title', flat=True).distinct().order_by('category__title')
+        expense_categories = Transaction.objects.filter(report=report, is_expense=True).values_list('category__title', flat=True).distinct().order_by('category__title')
+        earning_categories = Transaction.objects.filter(report=report, is_expense=False).values_list('category__title', flat=True).distinct().order_by('category__title')
+
+        context['all_categories'] = list(all_categories)
+        context['expense_categories'] = list(expense_categories)
+        context['earning_categories'] = list(earning_categories)
+
         return context
 
 
