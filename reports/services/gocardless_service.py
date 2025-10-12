@@ -151,12 +151,52 @@ class GoCardlessService:
         Returns:
             Tuple of (created_count, skipped_count)
         """
+        import sys
+
         # Get transactions from GoCardless
-        transactions_data = self.get_account_transactions(
-            account.account_id,
-            date_from=date_from or report.start_date.strftime('%Y-%m-%d'),
-            date_to=date_to or report.end_date.strftime('%Y-%m-%d')
-        )
+        date_from_str = date_from or report.start_date.strftime('%Y-%m-%d')
+
+        # If report end date is in the future, use today instead
+        today = datetime.now().date()
+        if date_to:
+            date_to_str = date_to
+        elif report.end_date > today:
+            date_to_str = today.strftime('%Y-%m-%d')
+        else:
+            date_to_str = report.end_date.strftime('%Y-%m-%d')
+
+        print(f"\n{'='*60}", file=sys.stderr)
+        print(f"IMPORT STARTING", file=sys.stderr)
+        print(f"Account ID: {account.account_id}", file=sys.stderr)
+        print(f"Date range: {date_from_str} to {date_to_str}", file=sys.stderr)
+        print(f"{'='*60}\n", file=sys.stderr)
+        sys.stderr.flush()
+
+        try:
+            print(f"Calling GoCardless API...", file=sys.stderr)
+            sys.stderr.flush()
+            transactions_data = self.get_account_transactions(
+                account.account_id,
+                date_from=date_from_str,
+                date_to=date_to_str
+            )
+            print(f"API call completed successfully", file=sys.stderr)
+            sys.stderr.flush()
+        except Exception as e:
+            print(f"EXCEPTION during API call: {type(e).__name__}: {e}", file=sys.stderr)
+            import traceback
+            print(traceback.format_exc(), file=sys.stderr)
+            sys.stderr.flush()
+            raise
+
+        # Debug: Print the structure of the response
+        print(f"DEBUG: Transaction data type: {type(transactions_data)}", file=sys.stderr)
+        print(f"DEBUG: Transaction data keys: {transactions_data.keys() if isinstance(transactions_data, dict) else 'Not a dict'}", file=sys.stderr)
+        if isinstance(transactions_data, dict):
+            if 'transactions' in transactions_data:
+                print(f"DEBUG: transactions key type: {type(transactions_data['transactions'])}", file=sys.stderr)
+                print(f"DEBUG: transactions key content preview: {str(transactions_data['transactions'])[:500]}", file=sys.stderr)
+        sys.stderr.flush()
 
         # Get ruleset rules for categorization
         rules = Rule.objects.filter(ruleset=report.ruleset) if report.ruleset else []
@@ -164,8 +204,34 @@ class GoCardlessService:
         created_count = 0
         skipped_count = 0
 
+        # Handle different possible response structures
+        booked_transactions = []
+
+        # Try to extract booked transactions from various possible structures
+        if isinstance(transactions_data, dict):
+            # Check for nested structure: {'transactions': {'booked': [...], 'pending': [...]}}
+            if 'transactions' in transactions_data:
+                trans = transactions_data['transactions']
+                if isinstance(trans, dict) and 'booked' in trans:
+                    booked_transactions = trans['booked']
+                elif isinstance(trans, list):
+                    # Sometimes transactions might be a direct list
+                    booked_transactions = trans
+            # Check for flat structure: {'booked': [...], 'pending': [...]}
+            elif 'booked' in transactions_data:
+                booked_transactions = transactions_data['booked']
+
+        print(f"DEBUG: Found {len(booked_transactions)} booked transactions", file=sys.stderr)
+        sys.stderr.flush()
+
+        if not booked_transactions:
+            print(f"WARNING: No booked transactions found. Full response structure:", file=sys.stderr)
+            import json
+            print(json.dumps(transactions_data, indent=2, default=str)[:2000], file=sys.stderr)
+            sys.stderr.flush()
+
         # Process booked transactions
-        for txn in transactions_data.get('transactions', {}).get('booked', []):
+        for txn in booked_transactions:
             try:
                 # Parse transaction data
                 transaction_id = txn.get('transactionId') or txn.get('internalTransactionId')
@@ -210,13 +276,21 @@ class GoCardlessService:
                     skipped_count += 1
 
             except Exception as e:
-                print(f"Error importing transaction: {e}")
+                print(f"Error importing transaction: {e}", file=sys.stderr)
+                import traceback
+                print(traceback.format_exc(), file=sys.stderr)
+                sys.stderr.flush()
                 skipped_count += 1
                 continue
 
         # Update last synced timestamp
         account.last_synced = datetime.now()
         account.save()
+
+        print(f"\n{'='*60}", file=sys.stderr)
+        print(f"IMPORT COMPLETED: Created={created_count}, Skipped={skipped_count}", file=sys.stderr)
+        print(f"{'='*60}\n", file=sys.stderr)
+        sys.stderr.flush()
 
         return created_count, skipped_count
 

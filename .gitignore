@@ -11,3 +11,5 @@ bkp
 .env*
 
 todo
+
+API_ERROR.txt
