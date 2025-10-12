@@ -169,6 +169,7 @@
                             <th scope="col" style="cursor: pointer;" onclick="sortTable('expenses_table', 3, 'number')">
                                 Amount <i class="bi bi-arrow-down-up"></i>
                             </th>
+                            <th scope="col"></th>
                         </tr>
                    </thead>
                    <tbody>
@@ -178,6 +179,10 @@
                                     <td>{{ transaction.name}} </td>
                                     <td>{{ transaction.category}} </td>
                                     <td class="expense_transaction">{{ transaction.amount}} </td>
+                                    <td>
+                                        <a href="{% url 'reports:edit_transaction' pk=transaction.id %}"><i class="bi bi-pencil-square"></i></a>
+                                        <a href="{% url 'reports:delete_transaction' pk=transaction.id %}"><i class="bi bi-x-square-fill remove_icon"></i></a>
+                                    </td>
                                   </tr>
                             {% endfor %}
 
@@ -225,6 +230,7 @@
                             <th scope="col" style="cursor: pointer;" onclick="sortTable('earnings_table', 3, 'number')">
                                 Amount <i class="bi bi-arrow-down-up"></i>
                             </th>
+                            <th scope="col"></th>
                         </tr>
                    </thead>
                    <tbody>
@@ -234,6 +240,10 @@
                                     <td>{{ transaction.name}} </td>
                                     <td>{{ transaction.category}} </td>
                                     <td class="earning_transaction">{{ transaction.amount}} </td>
+                                    <td>
+                                        <a href="{% url 'reports:edit_transaction' pk=transaction.id %}"><i class="bi bi-pencil-square"></i></a>
+                                        <a href="{% url 'reports:delete_transaction' pk=transaction.id %}"><i class="bi bi-x-square-fill remove_icon"></i></a>
+                                    </td>
                                   </tr>
                             {% endfor %}
                    </tbody>
